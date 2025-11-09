@@ -9,7 +9,12 @@ This is a complete RAG (Retrieval Augmented Generation) system installation pack
 - **Qdrant** - Vector database for semantic search
 - **TypeScript API** - REST API for PDF upload, indexing, and chat functionality
 
-Target deployment: EPYC 03 servers (24fire.de) with 4 cores, 24 GB RAM, 150 GB NVMe SSD.
+Target deployment: EPYC 03 servers (24fire.de) with 4 cores, 24 GB RAM, 150 GB NVMe SSD, 3 TB monthly traffic.
+
+**Example Server Configuration:**
+- IPv4: 45.92.217.15 / Gateway: 45.92.216.1
+- IPv6: 2a0a:51c4:5:677f:: / Gateway: 2a0a:51c4:5::1
+- Resources: 4 cores, 24 GB RAM, 150 GB storage, 3 TB traffic/month
 
 ## Installation Commands
 
