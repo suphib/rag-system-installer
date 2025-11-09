@@ -1,9 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(git init:*)",
-      "Bash(git add:*)"
-    ],
+    "allow": ["Bash(git init:*)", "Bash(git add:*)"],
     "deny": [],
     "ask": []
   }
