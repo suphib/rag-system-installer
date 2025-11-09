@@ -1,0 +1,222 @@
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║   🚀 RAG SYSTEM - QUICK INSTALLATION GUIDE               ║
+║                                                           ║
+║   Ollama + Qdrant + TypeScript API                       ║
+║   Für EPYC 03 Server (22,99€/Monat @ 24fire.de)         ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+
+📋 VORAUSSETZUNGEN
+==================
+✓ EPYC 03 Server bestellt (24fire.de)
+✓ Debian 12 installiert
+✓ SSH Zugang erhalten (IP + Root Passwort)
+
+⏱️ ZEITAUFWAND
+===============
+• Download Scripts: 2 Minuten
+• Installation: 30-40 Minuten (automatisch)
+• Total: ~45 Minuten
+
+📦 DATEIEN IN DIESEM PAKET
+===========================
+00-install-all.sh       → Master Script (startet alles)
+01-initial-setup.sh     → System Setup (Docker, Security)
+02-install-rag.sh       → RAG System (Qdrant, Ollama, Model)
+03-install-api.sh       → Node.js + Dependencies
+04-create-api-code.sh   → API Code + Build
+05-test-system.sh       → System Tests
+README.md               → Vollständige Dokumentation
+
+🚀 INSTALLATION (3 SCHRITTE)
+==============================
+
+SCHRITT 1: Mit Server verbinden
+--------------------------------
+ssh root@DEINE-SERVER-IP
+# Passwort eingeben (aus 24fire Email)
+
+SCHRITT 2: Scripts hochladen
+-----------------------------
+OPTION A - Per SCP (von deinem PC):
+  scp *.sh README.md root@SERVER-IP:/root/
+
+OPTION B - Per SFTP (FileZilla, WinSCP):
+  1. Mit Server verbinden
+  2. Alle *.sh und README.md nach /root/ kopieren
+
+OPTION C - Per wget/curl (wenn Scripts online):
+  wget https://your-domain.com/rag-setup.zip
+  unzip rag-setup.zip
+
+SCHRITT 3: Installation starten
+--------------------------------
+cd /root
+chmod +x *.sh
+./00-install-all.sh
+
+→ Jetzt läuft alles automatisch!
+→ Dauert ~30-40 Minuten
+→ Du kannst zuschauen oder Kaffee trinken ☕
+
+✅ NACH DER INSTALLATION
+=========================
+Das System ist fertig wenn du siehst:
+
+  🎉 Installation Complete!
+  
+  🌐 Access Points:
+    • API:        http://DEINE-IP:3000
+    • Qdrant:     http://DEINE-IP:6333
+    • Qdrant UI:  http://DEINE-IP:6335
+
+🧪 QUICK TEST
+==============
+# 1. Health Check
+curl http://localhost:3000/api/health
+
+# 2. Test Chat
+curl -X POST http://localhost:3000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question":"Hallo, funktionierst du?"}'
+
+# 3. System Status
+pm2 status
+
+📊 WAS IST INSTALLIERT?
+========================
+✓ Docker + Docker Compose
+✓ Ollama (LLM Runtime)
+✓ Llama 3.1 8B Modell (~4.7 GB)
+✓ Qdrant Vektordatenbank (Docker)
+✓ Node.js 20 + PM2
+✓ TypeScript RAG API
+✓ UFW Firewall (SSH, HTTP, HTTPS, Port 3000)
+✓ Fail2ban (SSH Schutz)
+✓ 8GB Swap File
+
+🔧 WICHTIGE BEFEHLE
+====================
+# API Management
+pm2 status              # Status anzeigen
+pm2 logs rag-api        # Logs anschauen
+pm2 restart rag-api     # API neu starten
+pm2 stop rag-api        # API stoppen
+
+# Qdrant Management
+docker ps               # Container Status
+docker logs qdrant      # Logs anschauen
+docker restart qdrant   # Neu starten
+
+# Ollama Management
+ollama list             # Modelle anzeigen
+ollama run llama3.1:8b  # Modell testen
+
+# System
+htop                    # CPU/RAM Monitor
+df -h                   # Disk Space
+free -h                 # Memory Usage
+
+📖 VERWENDUNG
+==============
+
+1. PDF HOCHLADEN
+----------------
+curl -X POST http://localhost:3000/api/upload \
+  -F "file=@/path/to/vertrag.pdf"
+
+Response:
+{
+  "success": true,
+  "filename": "vertrag.pdf",
+  "chunks": 12,
+  "message": "Successfully indexed 12 chunks"
+}
+
+2. FRAGE STELLEN
+----------------
+curl -X POST http://localhost:3000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Welche Kündigungsfristen haben die Verträge?",
+    "maxResults": 5
+  }'
+
+Response:
+{
+  "answer": "Basierend auf den Verträgen...",
+  "sources": ["vertrag1.pdf", "vertrag2.pdf"],
+  "processingTime": 3247
+}
+
+3. COLLECTION STATS
+-------------------
+curl http://localhost:3000/api/stats
+
+🐛 TROUBLESHOOTING
+===================
+
+PROBLEM: Script schlägt fehl
+→ cat /root/rag-setup.log (Installation Log)
+→ Letzten Fehler suchen
+
+PROBLEM: API startet nicht
+→ pm2 logs rag-api
+→ pm2 restart rag-api
+
+PROBLEM: Qdrant nicht erreichbar
+→ docker ps -a
+→ docker logs qdrant
+→ docker restart qdrant
+
+PROBLEM: Zu langsam
+→ free -h (RAM checken)
+→ top (Prozesse checken)
+→ Evtl. kleineres Modell nutzen
+
+PROBLEM: Out of Memory
+→ Mehr Swap erstellen:
+  fallocate -l 8G /swapfile2
+  chmod 600 /swapfile2
+  mkswap /swapfile2
+  swapon /swapfile2
+
+💡 TIPPS
+=========
+• Erste Anfrage dauert ~10 Sek (Model Warmup)
+• PDFs sollten Text enthalten (nicht nur Bilder)
+• Bei mehr RAM → größeres Modell (llama3.1:13b)
+• Backup: /opt/rag-system/qdrant/ regelmäßig sichern
+• Performance: ~2-4 Sek pro Antwort bei 8B Model
+
+📚 VOLLSTÄNDIGE DOKUMENTATION
+==============================
+Siehe README.md für:
+• Detaillierte Architektur
+• API Referenz
+• Performance Tuning
+• Frontend Beispiele
+• Integration in CasaManager
+• Erweiterte Konfiguration
+
+🆘 SUPPORT
+===========
+• Installation Log: /root/rag-setup.log
+• System Info: /root/rag-info.txt
+• Vollständige Doku: /root/README.md
+• Bei Fragen: Logs checken + README lesen
+
+🎯 NÄCHSTE SCHRITTE
+====================
+1. ✅ Installation durchführen
+2. 📤 Test-PDFs hochladen
+3. 💬 Fragen stellen
+4. 🎨 Optional: Frontend UI bauen
+5. 🔗 In CasaManager integrieren
+
+Viel Erfolg! 🚀
+
+═══════════════════════════════════════════════════════════
+End of Quick Installation Guide
+═══════════════════════════════════════════════════════════

@@ -1,0 +1,332 @@
+╔═══════════════════════════════════════════════════════╗
+║         RAG SYSTEM - QUICK REFERENCE                  ║
+║         Cheat Sheet für tägliche Nutzung              ║
+╚═══════════════════════════════════════════════════════╝
+
+🚀 INSTALLATION (ONE-LINER)
+===========================
+ssh root@SERVER-IP
+cd /root && chmod +x *.sh && ./00-install-all.sh
+
+
+📍 SERVICE URLs
+===============
+API:           http://SERVER-IP:3000
+Qdrant API:    http://SERVER-IP:6333
+Qdrant UI:     http://SERVER-IP:6335
+Ollama:        http://SERVER-IP:11434
+
+
+🔧 API MANAGEMENT (PM2)
+=======================
+pm2 status                    # Alle Services anzeigen
+pm2 logs rag-api              # Live Logs
+pm2 logs rag-api --lines 100  # Letzte 100 Zeilen
+pm2 restart rag-api           # Neu starten
+pm2 stop rag-api              # Stoppen
+pm2 start rag-api             # Starten
+pm2 monit                     # Monitoring Dashboard
+pm2 delete rag-api            # Service entfernen
+
+
+🐳 QDRANT (DOCKER)
+==================
+docker ps                              # Container Status
+docker logs qdrant                     # Logs
+docker logs -f qdrant                  # Live Logs
+docker restart qdrant                  # Neu starten
+docker stop qdrant                     # Stoppen
+docker start qdrant                    # Starten
+docker stats qdrant                    # Resource Usage
+cd /opt/rag-system && docker-compose up -d    # Alle starten
+cd /opt/rag-system && docker-compose down     # Alle stoppen
+
+
+🤖 OLLAMA
+=========
+ollama list                   # Alle Modelle
+ollama run llama3.1:8b "Hi"   # Model testen
+ollama pull llama3.1:13b      # Neues Model laden
+ollama rm llama3.1:8b         # Model löschen
+systemctl status ollama       # Service Status
+systemctl restart ollama      # Service neu starten
+journalctl -u ollama -f       # Live Logs
+
+
+📤 PDF HOCHLADEN
+================
+# Single File
+curl -X POST http://localhost:3000/api/upload \
+  -F "file=@dokument.pdf"
+
+# Mit Server IP (von außen)
+curl -X POST http://SERVER-IP:3000/api/upload \
+  -F "file=@dokument.pdf"
+
+
+💬 CHAT / FRAGEN
+================
+# Einfache Frage
+curl -X POST http://localhost:3000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question":"Was ist KI?"}'
+
+# Mit mehr Ergebnissen
+curl -X POST http://localhost:3000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question":"Kündigungsfristen?","maxResults":10}'
+
+# Pretty JSON Output
+curl -s http://localhost:3000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question":"Test"}' | jq '.'
+
+
+📊 SYSTEM STATUS
+================
+# Health Check
+curl http://localhost:3000/api/health
+
+# Qdrant Stats
+curl http://localhost:3000/api/stats | jq '.'
+
+# Collection Info
+curl http://localhost:6333/collections/documents | jq '.'
+
+# Alle Collections
+curl http://localhost:6333/collections | jq '.'
+
+
+🔍 MONITORING
+=============
+# CPU + RAM
+htop                          # Interaktiv
+top                           # Standard
+
+# Disk Space
+df -h                         # Alle Mounts
+df -h /                       # Root
+du -sh /opt/rag-system/*      # RAG System Größe
+
+# Memory
+free -h                       # Übersicht
+cat /proc/meminfo             # Details
+
+# Swap
+swapon --show                 # Swap Status
+free -h | grep Swap           # Swap Usage
+
+# Network
+netstat -tulpn                # Offene Ports
+ss -tulpn                     # Moderne Alternative
+iftop                         # Live Traffic (installieren)
+
+
+📝 LOGS
+=======
+# API Logs
+pm2 logs rag-api              # Live
+pm2 logs rag-api --err        # Nur Errors
+pm2 logs rag-api --lines 50   # Letzte 50 Zeilen
+cat /opt/rag-system/logs/out.log       # Output Log
+cat /opt/rag-system/logs/err.log       # Error Log
+tail -f /opt/rag-system/logs/combined.log  # Live
+
+# Qdrant Logs
+docker logs qdrant            # Alle
+docker logs -f qdrant         # Live
+docker logs --tail 100 qdrant # Letzte 100
+
+# Ollama Logs
+journalctl -u ollama          # Alle
+journalctl -u ollama -f       # Live
+journalctl -u ollama --since "1 hour ago"  # Letzte Stunde
+
+# Installation Log
+cat /root/rag-setup.log
+
+
+🔥 FIREWALL (UFW)
+=================
+ufw status                    # Status
+ufw status verbose            # Detailliert
+ufw allow 8080/tcp            # Port öffnen
+ufw delete allow 8080/tcp     # Port schließen
+ufw disable                   # Firewall aus
+ufw enable                    # Firewall an
+
+
+🗂️ WICHTIGE VERZEICHNISSE
+==========================
+/opt/rag-system/              # Hauptverzeichnis
+├── api/                      # API Code
+│   ├── src/                  # TypeScript Source
+│   ├── dist/                 # Compiled JS
+│   └── node_modules/         # Dependencies
+├── qdrant/                   # Qdrant Data (BACKUP!)
+├── documents/                # PDFs (optional)
+├── logs/                     # API Logs
+└── docker-compose.yml        # Qdrant Config
+
+/root/                        # Setup Scripts
+├── *.sh                      # Installation Scripts
+├── README.md                 # Vollständige Doku
+├── rag-setup.log            # Installation Log
+└── rag-info.txt             # System Info
+
+
+💾 BACKUP
+=========
+# Qdrant Data (wichtig!)
+tar -czf qdrant-backup-$(date +%Y%m%d).tar.gz /opt/rag-system/qdrant/
+
+# API Code
+tar -czf api-backup-$(date +%Y%m%d).tar.gz /opt/rag-system/api/
+
+# Gesamtes System
+tar -czf rag-full-backup-$(date +%Y%m%d).tar.gz /opt/rag-system/
+
+# Download (auf lokalem PC)
+scp root@SERVER-IP:/root/*.tar.gz ./
+
+
+🔄 UPDATES
+==========
+# Ollama Update
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Qdrant Update
+cd /opt/rag-system
+docker-compose pull
+docker-compose up -d
+
+# API Dependencies
+cd /opt/rag-system/api
+npm update
+
+# System Packages
+apt update && apt upgrade -y
+
+
+🐛 COMMON ISSUES
+================
+# API nicht erreichbar
+→ pm2 logs rag-api
+→ pm2 restart rag-api
+→ ufw status (Port 3000 offen?)
+
+# Qdrant nicht erreichbar
+→ docker ps -a
+→ docker logs qdrant
+→ docker restart qdrant
+
+# Out of Memory
+→ free -h
+→ Swap prüfen: swapon --show
+→ Mehr Swap: siehe README
+
+# Langsame Antworten
+→ top / htop (CPU checken)
+→ Model zu groß? → llama3.1:8b nutzen
+→ Zu wenig RAM? → Swap erhöhen
+
+# Model lädt nicht
+→ ollama list
+→ ollama pull llama3.1:8b
+→ systemctl restart ollama
+
+
+⚡ PERFORMANCE TUNING
+=====================
+# Kleineres Modell (schneller)
+ollama pull llama3.1:8b       # ~4.7 GB RAM
+
+# Größeres Modell (besser)
+ollama pull llama3.1:13b      # ~13 GB RAM
+ollama pull llama3.1:70b      # ~40+ GB RAM (nicht auf EPYC 03!)
+
+# In API ändern (.env)
+nano /opt/rag-system/api/.env
+# MODEL_NAME=llama3.1:13b
+pm2 restart rag-api
+
+
+🔐 SECURITY
+===========
+# SSH Key Login (statt Passwort)
+ssh-keygen                    # Auf lokalem PC
+ssh-copy-id root@SERVER-IP    # Key hochladen
+# Passwort-Login deaktivieren:
+nano /etc/ssh/sshd_config
+# PasswordAuthentication no
+systemctl restart sshd
+
+# Fail2ban Status
+fail2ban-client status
+fail2ban-client status sshd
+
+# Firewall Regeln anzeigen
+ufw status numbered
+
+
+🌐 PRODUCTION SETUP
+===================
+# Domain + SSL
+apt install nginx certbot python3-certbot-nginx
+certbot --nginx -d deine-domain.de
+
+# Nginx Reverse Proxy
+nano /etc/nginx/sites-available/rag-api
+# proxy_pass http://localhost:3000;
+systemctl reload nginx
+
+
+📱 INTEGRATION (CasaManager)
+=============================
+// In NestJS Service:
+async uploadContract(file: Buffer) {
+  const formData = new FormData();
+  formData.append('file', file, 'contract.pdf');
+  
+  return await axios.post('http://rag-server:3000/api/upload', 
+    formData
+  );
+}
+
+async askQuestion(question: string) {
+  return await axios.post('http://rag-server:3000/api/chat', {
+    question
+  });
+}
+
+
+🎯 QUICK TESTS
+==============
+# 1. Alles OK?
+curl http://localhost:3000/api/health
+
+# 2. Ollama läuft?
+curl http://localhost:11434/api/tags
+
+# 3. Qdrant läuft?
+curl http://localhost:6333/collections
+
+# 4. Chat funktioniert?
+curl -X POST http://localhost:3000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question":"Hi"}'
+
+# 5. Full System Test
+./05-test-system.sh
+
+
+📞 HILFE
+========
+Installation Log:  /root/rag-setup.log
+System Info:       /root/rag-info.txt
+Vollständige Doku: /root/README.md
+API Code:          /opt/rag-system/api/src/
+
+═══════════════════════════════════════════════════════════
+EOF - Cheat Sheet
+═══════════════════════════════════════════════════════════
