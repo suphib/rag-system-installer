@@ -61,7 +61,7 @@ That's it! The installer will:
 | **Ollama** | Latest | LLM runtime | - |
 | **Llama 3.1 8B** | Chat model | Text generation | ~4.7 GB |
 | **Nomic Embed Text** | Embedding model | Semantic embeddings (768 dim) | ~275 MB |
-| **Qdrant** | Latest (Docker) | Vector database | ~100 MB |
+| **Qdrant** | Latest (Docker) | Vector database + Dashboard | ~100 MB |
 | **Node.js** | 20.x | JavaScript runtime | ~50 MB |
 | **TypeScript API** | Custom | REST API server | ~200 MB |
 | **PM2** | Latest | Process manager | - |
@@ -92,7 +92,10 @@ That's it! The installer will:
 
 ## 🔌 API Endpoints
 
-Once installed, the API runs on `http://YOUR-SERVER-IP:3000`
+Once installed, the services run on:
+- **API:** `http://YOUR-SERVER-IP:3000`
+- **Qdrant API:** `http://YOUR-SERVER-IP:6333`
+- **Qdrant Dashboard:** `http://YOUR-SERVER-IP:6333/dashboard`
 
 ### Health Check
 ```bash
@@ -236,7 +239,13 @@ cd /root/rag-system-installer/files
 
 ## 🔄 Version History
 
-### Version 1.1 (Current) - November 2024
+### Version 1.1.1 (Current) - November 2024
+**Post-deployment fixes:**
+- ✅ Removed non-existent qdrant-web-ui (Docker image no longer available)
+- ✅ Auto-create logs directory for PM2
+- ✅ Added sample-pdfs directory with testing guide
+
+### Version 1.1 - November 2024
 **Critical fixes from v1.0:**
 - ✅ Fixed vector dimension mismatch (now 768 for nomic-embed-text)
 - ✅ Fixed Ollama test command syntax

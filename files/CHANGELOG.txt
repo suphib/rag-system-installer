@@ -1,9 +1,43 @@
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
 ║   CHANGELOG - KRITISCHE FIXES                             ║
-║   Version 1.1 - November 2024                             ║
+║   Version 1.1.1 - November 2024                           ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
+
+🔧 VERSION 1.1.1 - POST-DEPLOYMENT FIXES
+=========================================
+Date: November 9, 2024
+
+7. ✅ QDRANT WEB UI ENTFERNT
+   Problem: qdrant/qdrant-web-ui Image existiert nicht mehr auf Docker Hub
+   Fix:     Entfernt aus docker-compose.yml
+
+   Hinweis: Das eingebaute Qdrant Dashboard auf Port 6333 ist ausreichend!
+   Dashboard URL: http://SERVER-IP:6333/dashboard
+
+   Dateien geändert:
+   - 02-install-rag.sh (Zeile 21-38)
+
+8. ✅ LOGS-VERZEICHNIS AUTOMATISCH ERSTELLEN
+   Problem: PM2 braucht logs/ Verzeichnis, wurde nicht erstellt
+   Fix:     mkdir -p ../logs in 04-create-api-code.sh hinzugefügt
+
+   Dateien geändert:
+   - 04-create-api-code.sh (Zeile 418-420)
+
+9. ✅ SAMPLE PDFs HINZUGEFÜGT
+   Feature: sample-pdfs/ Verzeichnis mit README für Tests
+   Grund:   Erleichtert erste Tests nach Installation
+
+   Neue Dateien:
+   - sample-pdfs/README.md
+
+═══════════════════════════════════════════════════════════
+
+🔴 VERSION 1.1 - INITIALE KRITISCHE FIXES
+==========================================
+Date: November 2024
 
 🔴 KRITISCHE FEHLER BEHOBEN
 ============================

@@ -415,7 +415,11 @@ EOF
 echo -e "${YELLOW}🔨 Building TypeScript...${NC}"
 npm run build
 
-# 8. Create PM2 ecosystem file
+# 8. Create logs directory
+echo -e "${YELLOW}📁 Creating logs directory...${NC}"
+mkdir -p ../logs
+
+# 9. Create PM2 ecosystem file
 cat > ecosystem.config.js <<'EOF'
 module.exports = {
   apps: [{

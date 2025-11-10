@@ -27,7 +27,7 @@ services:
     container_name: qdrant
     restart: unless-stopped
     ports:
-      - "6333:6333"  # REST API
+      - "6333:6333"  # REST API & Dashboard
       - "6334:6334"  # gRPC
     volumes:
       - ./qdrant:/qdrant/storage
@@ -35,19 +35,6 @@ services:
       - QDRANT__SERVICE__GRPC_PORT=6334
     mem_limit: 4g
     cpus: 2
-
-  # Optional: Qdrant Web UI
-  qdrant-ui:
-    image: qdrant/qdrant-web-ui:latest
-    container_name: qdrant-ui
-    restart: unless-stopped
-    ports:
-      - "6335:80"
-    environment:
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-    depends_on:
-      - qdrant
 EOF
 
 # Qdrant starten
@@ -145,7 +132,6 @@ echo "Services running:"
 echo "• Ollama: http://localhost:11434"
 echo "• Qdrant API: http://localhost:6333"
 echo "• Qdrant Dashboard: http://localhost:6333/dashboard"
-echo "• Qdrant Web UI: http://localhost:6335"
 echo ""
 echo "Installed Models:"
 ollama list
