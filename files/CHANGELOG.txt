@@ -1,9 +1,49 @@
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
 ║   CHANGELOG - KRITISCHE FIXES                             ║
-║   Version 1.1.3 - November 2024                           ║
+║   Version 1.1.4 - November 2024                           ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
+
+🏢 VERSION 1.1.4 - PROFESSIONELLES & KONSERVATIVES DESIGN
+=========================================================
+Date: November 11, 2024
+
+14. ✅ PROFESSIONELLES DESIGN
+    Problem: Zu viele Emojis und unnötige Elemente
+    Fix:     Entfernt für Business-taugliches Design
+
+    Entfernte Elemente:
+
+    1. Hinweise-Card (komplett entfernt)
+       - War redundant und nahm Platz weg
+       - Informationen nicht essentiell
+
+    2. Feature-Grid in Welcome Message
+       - "Live Timer", "Markdown", etc. Badges entfernt
+       - Nur noch Titel + kurze Beschreibung
+       - Professionellerer Ersteindruck
+
+    3. Emoji-Icons durch Symbole ersetzt:
+       - Card Headers: Keine Emojis mehr
+       - Dark Mode: 🌙/☀️ → ◐/○
+       - Refresh: 🔄 → ↻
+       - Clear Chat: 🗑️ → ×
+       - Welcome: 👋 entfernt
+
+    Resultat:
+    ✓ Professionell, business-tauglich
+    ✓ Keine dekorativen Emojis
+    ✓ Klareres, fokussiertes Interface
+    ✓ Bessere Sidebar-Nutzung
+    ✓ Konservatives Design für Firmenumgebung
+
+    Dateien geändert:
+    - rag-ui/index.html (71 lines removed, 12 added)
+    - rag-ui/app.js (Welcome message vereinfacht)
+    - rag-ui/style.css (Button-Größe angepasst)
+
+═══════════════════════════════════════════════════════════
 
 🎨 VERSION 1.1.3 - COMPACT & CONSERVATIVE DESIGN
 =================================================
