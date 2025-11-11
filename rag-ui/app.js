@@ -68,14 +68,14 @@ function loadDarkModePreference() {
   const isDark = localStorage.getItem('darkMode') === 'true';
   if (isDark) {
     document.body.classList.add('dark-mode');
-    if (darkModeToggle) darkModeToggle.querySelector('span').textContent = '☀️';
+    if (darkModeToggle) darkModeToggle.querySelector('span').textContent = '○';
   }
 }
 
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle('dark-mode');
   localStorage.setItem('darkMode', isDark);
-  if (darkModeToggle) darkModeToggle.querySelector('span').textContent = isDark ? '☀️' : '🌙';
+  if (darkModeToggle) darkModeToggle.querySelector('span').textContent = isDark ? '○' : '◐';
 }
 
 // Clear Chat
@@ -90,27 +90,8 @@ function clearChat() {
     const welcomeMsg = document.createElement('div');
     welcomeMsg.className = 'welcome-message';
     welcomeMsg.innerHTML = `
-      <div class="welcome-icon">👋</div>
       <h3>Willkommen beim RAG System</h3>
-      <p>Laden Sie ein PDF-Dokument hoch und stellen Sie beliebige Fragen dazu.</p>
-      <div class="feature-grid">
-        <div class="feature-item">
-          <span class="feature-icon">⏱️</span>
-          <span class="feature-text">Live Timer</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon">📝</span>
-          <span class="feature-text">Markdown</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon">🌙</span>
-          <span class="feature-text">Dark Mode</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon">🎨</span>
-          <span class="feature-text">Code Highlighting</span>
-        </div>
-      </div>
+      <p>Laden Sie ein PDF-Dokument hoch und stellen Sie Fragen zum Inhalt.</p>
     `;
     chatContainer.appendChild(welcomeMsg);
   }, 300);
