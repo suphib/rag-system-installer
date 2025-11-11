@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG System - Enhanced UI</title>
+    <link rel="stylesheet" href="style-enhanced.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button id="darkModeToggle" title="Dark Mode umschalten">🌙</button>
+            <h1>🤖 RAG System</h1>
+            <p>Dokumente hochladen und intelligente Fragen stellen</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Upload-Bereich -->
+            <section class="card upload-section">
+                <h2>📄 Dokumente hochladen</h2>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept=".pdf" hidden>
+                    <div class="upload-prompt">
+                        <span class="upload-icon">📁</span>
+                        <p>PDF hierher ziehen oder klicken zum Auswählen</p>
+                        <small>Nur PDF-Dateien werden unterstützt</small>
+                    </div>
+                </div>
+                <div id="uploadStatus" class="status-message"></div>
+                <div id="uploadProgress" class="progress-bar hidden">
+                    <div class="progress-fill"></div>
+                </div>
+            </section>
+
+            <!-- Statistik-Bereich -->
+            <section class="card stats-section">
+                <h2>📊 System-Statistik</h2>
+                <div id="statsContainer" class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Dokumente:</span>
+                        <span class="stat-value" id="docCount">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Vektoren:</span>
+                        <span class="stat-value" id="vectorCount">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Status:</span>
+                        <span class="stat-value" id="systemStatus">-</span>
+                    </div>
+                </div>
+                <button id="refreshStatsButton" class="secondary-button">🔄 Aktualisieren</button>
+            </section>
+
+            <!-- Chat-Bereich -->
+            <section class="card chat-section">
+                <h2>💬 Fragen stellen</h2>
+                <div class="chat-container" id="chatContainer">
+                    <div class="welcome-message">
+                        <p>👋 Willkommen! Laden Sie zuerst ein PDF hoch, dann können Sie Fragen dazu stellen.</p>
+                        <p style="margin-top: 10px;">💡 <strong>Features:</strong> Live-Timer ⏱️ • Markdown-Support 📝 • Dark Mode 🌙</p>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <textarea
+                        id="questionInput"
+                        placeholder="Ihre Frage hier eingeben..."
+                        rows="2"
+                        disabled
+                    ></textarea>
+                    <button id="sendButton" disabled>
+                        <span>📤 Senden</span>
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>RAG System v1.1.1 Enhanced | Powered by Ollama + Qdrant</p>
+            <p style="margin-top: 8px; font-size: 0.85rem;">
+                ✨ Features: Live-Timer • Markdown • Dark Mode • Animationen
+            </p>
+        </footer>
+    </div>
+
+    <script src="app-enhanced.js"></script>
+</body>
+</html>

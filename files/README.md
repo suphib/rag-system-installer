@@ -26,7 +26,7 @@ Network: 1 Gbit/s
 
 ## 🛠️ Installation
 
-### Phase 1: Server Setup (15 min)
+### Schnellinstallation (All-in-One)
 
 ```bash
 # 1. Mit Server verbinden
@@ -37,12 +37,23 @@ cd /root
 git clone https://github.com/YOUR-REPO/rag-setup.git
 cd rag-setup
 
-# ODER: Scripts einzeln erstellen (siehe unten)
-
 # 3. Scripts ausführbar machen
 chmod +x *.sh
 
-# 4. Initial Setup (System, Docker, Firewall)
+# 4. Alles auf einmal installieren
+./00-install-all.sh
+```
+
+**⏱️ Dauer:** ~30-40 Minuten (inkl. Model Download)
+
+---
+
+### Einzelne Installations-Phasen
+
+#### Phase 1: Server Setup (15 min)
+
+```bash
+# Initial Setup (System, Docker, Firewall)
 ./01-initial-setup.sh
 ```
 
@@ -117,6 +128,84 @@ pm2 logs rag-api
 cd /root/rag-setup
 ./05-test-system.sh
 ```
+
+### Phase 7: Web UI installieren (Optional)
+
+```bash
+# Web-Benutzeroberfläche installieren
+./06-install-web-ui.sh
+```
+
+**Was passiert:**
+- Erstellt HTML/CSS/JavaScript Frontend
+- Interaktive Oberfläche für Upload & Chat
+- Nginx Reverse Proxy Konfiguration
+
+**Zugriff auf die Web UI:**
+
+**Option 1 - Python Dev Server (schnell zum Testen):**
+```bash
+cd /opt/rag-system/web-ui
+python3 -m http.server 8080
+
+# Firewall öffnen
+ufw allow 8080
+
+# Im Browser öffnen:
+# http://DEINE-SERVER-IP:8080
+```
+
+**Option 2 - Nginx (empfohlen für Production):**
+```bash
+# Nginx installieren
+apt install nginx -y
+
+# Konfiguration erstellen
+cat > /etc/nginx/sites-available/rag-ui << 'EOF'
+server {
+    listen 80;
+    server_name _;
+
+    # Web UI
+    location / {
+        root /opt/rag-system/web-ui;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # API Proxy
+    location /api/ {
+        proxy_pass http://localhost:3000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        client_max_body_size 50M;
+
+        # Timeouts für LLM
+        proxy_connect_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+    }
+}
+EOF
+
+# Aktivieren und starten
+ln -s /etc/nginx/sites-available/rag-ui /etc/nginx/sites-enabled/
+nginx -t
+systemctl restart nginx
+
+# Firewall öffnen
+ufw allow 80
+
+# Im Browser öffnen:
+# http://DEINE-SERVER-IP
+```
+
+**Features der Web UI:**
+- 📤 Drag & Drop PDF Upload
+- 💬 Chat-Interface für Fragen
+- 📊 Live-Statistiken
+- 🎨 Modernes, responsives Design
+- ⚡ Echtzeit-Updates
 
 ## 🎯 API Endpoints
 
@@ -386,76 +475,35 @@ mkswap /swapfile2
 swapon /swapfile2
 ```
 
+## 🌐 Web UI Zugriff
+
+**Qdrant Web UI** (vordefiniert):
+```
+http://DEINE-SERVER-IP:6335
+```
+- Vektordatenbank Dashboard
+- Collection Browser
+- Query Interface
+
+**RAG Chat Web UI** (nach Installation von `06-install-web-ui.sh`):
+```
+http://DEINE-SERVER-IP        # Mit Nginx
+http://DEINE-SERVER-IP:8080   # Mit Python Server
+```
+- PDF Upload Interface
+- Chat-Oberfläche
+- System-Statistiken
+
 ## 🚀 Next Steps
 
-### 1. Frontend erstellen
-
-Du kannst eine simple HTML/React App erstellen:
-
-```html
-<!-- /opt/rag-system/public/index.html -->
-<!DOCTYPE html>
-<html>
-<head>
-  <title>RAG Chat</title>
-</head>
-<body>
-  <h1>Dokumenten-Chat</h1>
-  
-  <div>
-    <input type="file" id="pdfFile" accept=".pdf">
-    <button onclick="uploadPDF()">Upload</button>
-  </div>
-  
-  <div>
-    <input type="text" id="question" placeholder="Frage...">
-    <button onclick="askQuestion()">Fragen</button>
-  </div>
-  
-  <div id="answer"></div>
-  
-  <script>
-    async function uploadPDF() {
-      const file = document.getElementById('pdfFile').files[0];
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const response = await fetch('http://localhost:3000/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-      
-      const result = await response.json();
-      alert(result.message);
-    }
-    
-    async function askQuestion() {
-      const question = document.getElementById('question').value;
-      
-      const response = await fetch('http://localhost:3000/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question })
-      });
-      
-      const result = await response.json();
-      document.getElementById('answer').innerHTML = 
-        `<strong>Antwort:</strong> ${result.answer}<br>
-         <strong>Quellen:</strong> ${result.sources.join(', ')}`;
-    }
-  </script>
-</body>
-</html>
-```
-
-### 2. Besseres Modell testen
+### 1. Besseres Modell testen
 
 Falls 8B nicht reicht:
 ```bash
 ollama pull llama3.1:13b  # Braucht ~13 GB RAM
 ```
 
-### 3. In CasaManager integrieren
+### 2. In CasaManager integrieren
 
 Aus deinem NestJS Backend:
 ```typescript
