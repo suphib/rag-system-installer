@@ -1,9 +1,63 @@
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
 ║   CHANGELOG - KRITISCHE FIXES                             ║
-║   Version 1.1.2 - November 2024                           ║
+║   Version 1.1.3 - November 2024                           ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
+
+🎨 VERSION 1.1.3 - COMPACT & CONSERVATIVE DESIGN
+=================================================
+Date: November 11, 2024
+
+13. ✅ KOMPAKTES DESIGN
+    Problem: UI war zu hoch, viel scrollen nötig
+    Fix:     Reduzierte Spacing, Font-Größen und Höhen durchgehend
+
+    Änderungen im Detail:
+
+    Layout & Spacing:
+    - Container padding: lg → md
+    - Main layout gap: xl → lg
+    - Sidebar: 350px → 320px (schmaler)
+    - Card margins: lg → md
+    - align-items: start (kein Stretching)
+
+    Header:
+    - Logo Icon: 3rem → 2.5rem
+    - H1: 2rem → 1.5rem
+    - Subtitle: 1rem → 0.875rem
+    - Padding/Margins reduziert
+
+    Chat-Bereich:
+    - Chat card max-height: 600px
+    - Chat body height: 500px (fixed)
+    - Container padding: lg → md
+
+    Upload-Bereich:
+    - Padding: 2xl → lg
+    - Font-Größen reduziert
+    - Icon margin: md → sm
+
+    Input-Bereich:
+    - Padding kompakter
+    - Font size: 1rem → 0.9375rem
+    - Min/Max heights reduziert
+
+    Welcome Message:
+    - Alle Paddings/Margins reduziert
+    - Icon: 4rem → 3rem
+    - Font-Größen kleiner
+
+    Resultat:
+    ✓ Alles ohne Scrollen sichtbar
+    ✓ Professionelleres, konservatives Aussehen
+    ✓ Bessere Bildschirm-Nutzung
+    ✓ Höhere Informationsdichte
+
+    Dateien geändert:
+    - rag-ui/style.css (46 lines changed)
+
+═══════════════════════════════════════════════════════════
 
 🔧 VERSION 1.1.2 - UI IMPROVEMENTS
 ===================================
