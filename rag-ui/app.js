@@ -342,8 +342,8 @@ async function loadStats() {
       // Update Sidebar Stats (if exists)
       const chunkCountEl = document.getElementById('chunkCount');
       const indexedCountEl = document.getElementById('indexedCount');
-      if (chunkCountEl) chunkCountEl.textContent = data.points_count || '-';
-      if (indexedCountEl) indexedCountEl.textContent = data.indexed_vectors_count || '-';
+      if (chunkCountEl) chunkCountEl.textContent = data.points_count !== undefined ? data.points_count : '-';
+      if (indexedCountEl) indexedCountEl.textContent = data.indexed_vectors_count !== undefined ? data.indexed_vectors_count : '-';
 
       if (data.points_count > 0) {
         hasDocuments = true;
