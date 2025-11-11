@@ -1,0 +1,46 @@
+╔════════════════════════════════════════════════════════════════╗
+║  PDF VIEW & DOWNLOAD UPDATE - QUICK START                      ║
+╚════════════════════════════════════════════════════════════════╝
+
+🚀 INSTALLATION (3 Befehle):
+
+1. Dateien hochladen:
+   scp -r api web-ui update-pdf-view.sh root@45.92.217.15:/tmp/rag-update/
+
+2. Auf Server einloggen:
+   ssh root@45.92.217.15
+
+3. Update ausführen:
+   cd /tmp/rag-update && chmod +x update-pdf-view.sh && ./update-pdf-view.sh
+
+✅ FERTIG!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 NEUE FEATURES:
+
+  📄 PDFs werden gespeichert (nicht mehr gelöscht)
+  👁️  Klick auf Dateiname → PDF im Browser öffnen
+  📥 "Download" Button → PDF herunterladen
+  🗑️  "Löschen" Button → Dokument + Chunks löschen
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 WAS WIRD GEÄNDERT:
+
+  • api/src/routes/index.ts → 3 neue Endpoints
+  • web-ui/app.js → Tabelle mit Links & Buttons
+  • web-ui/style.css → Button-Styles
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️  WICHTIG:
+
+  • Nur NEU hochgeladene PDFs haben View/Download
+  • Alte PDFs funktionieren weiter für Queries
+  • Backups werden automatisch erstellt
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 Mehr Infos: PDF-VIEW-UPDATE.md
+

@@ -661,24 +661,70 @@ body.dark-mode .documents-table tbody tr:hover {
 
 .documents-table .actions-cell {
     text-align: center;
-    width: 12%;
+    width: 20%;
     white-space: nowrap;
 }
 
+.pdf-link {
+    color: var(--primary-500);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition-base);
+}
+
+.pdf-link:hover {
+    color: var(--primary-600);
+    text-decoration: underline;
+}
+
+body.dark-mode .pdf-link {
+    color: var(--primary-400);
+}
+
+body.dark-mode .pdf-link:hover {
+    color: var(--primary-300);
+}
+
+.view-doc-btn,
+.download-doc-btn,
 .delete-doc-btn {
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--radius-md);
-    background: #ef4444;
     color: white;
     border: none;
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     font-weight: 500;
     transition: all var(--transition-base);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-width: 60px;
+    margin: 0 2px;
+}
+
+.view-doc-btn {
+    background: var(--primary-500);
+}
+
+.view-doc-btn:hover {
+    background: var(--primary-600);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.download-doc-btn {
+    background: #10b981;
+}
+
+.download-doc-btn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.delete-doc-btn {
+    background: #ef4444;
 }
 
 .delete-doc-btn:hover {
@@ -687,6 +733,8 @@ body.dark-mode .documents-table tbody tr:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.view-doc-btn:active,
+.download-doc-btn:active,
 .delete-doc-btn:active {
     transform: translateY(0);
 }

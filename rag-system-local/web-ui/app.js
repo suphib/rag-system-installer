@@ -449,13 +449,26 @@ async function loadDocuments() {
 
         return `
           <tr>
-            <td class="filename-cell">${escapeHtml(doc.filename)}</td>
+            <td class="filename-cell">
+              <a href="${API_BASE_URL}/documents/${encodeURIComponent(doc.filename)}/view"
+                 target="_blank"
+                 class="pdf-link"
+                 title="PDF in neuem Tab öffnen">
+                ${escapeHtml(doc.filename)}
+              </a>
+            </td>
             <td class="number-cell">${doc.chunks}</td>
             <td class="number-cell">${pages}</td>
             <td class="number-cell">${fileSize}</td>
             <td class="number-cell">${indexingTime}</td>
             <td class="date-cell">${date}</td>
             <td class="actions-cell">
+              <button class="view-doc-btn" onclick="window.open('${API_BASE_URL}/documents/${encodeURIComponent(doc.filename)}/view', '_blank')" title="PDF ansehen">
+                Ansehen
+              </button>
+              <button class="download-doc-btn" onclick="window.location.href='${API_BASE_URL}/documents/${encodeURIComponent(doc.filename)}/download'" title="PDF herunterladen">
+                Download
+              </button>
               <button class="delete-doc-btn" onclick="deleteDocument('${escapeHtml(doc.filename)}')" title="Dokument löschen">
                 Löschen
               </button>

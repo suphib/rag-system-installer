@@ -430,11 +430,11 @@ async function loadDocuments() {
     const response = await fetch(`${API_BASE_URL}/documents`);
     const data = await response.json();
 
-    const documentsTable = document.getElementById('documentsTable');
-    if (!documentsTable) return;
+    const documentsList = document.getElementById('documentsList');
+    if (!documentsList) return;
 
     if (response.ok && data.documents && data.documents.length > 0) {
-      const tableRows = data.documents.map(doc => {
+      documentsList.innerHTML = data.documents.map(doc => {
         const date = doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleString('de-DE', {
           day: '2-digit',
           month: '2-digit',
@@ -448,75 +448,24 @@ async function loadDocuments() {
         const indexingTime = doc.indexingTime ? `${(doc.indexingTime / 1000).toFixed(1)}s` : '-';
 
         return `
-          <tr>
-            <td class="filename-cell">${escapeHtml(doc.filename)}</td>
-            <td class="number-cell">${doc.chunks}</td>
-            <td class="number-cell">${pages}</td>
-            <td class="number-cell">${fileSize}</td>
-            <td class="number-cell">${indexingTime}</td>
-            <td class="date-cell">${date}</td>
-            <td class="actions-cell">
-              <button class="delete-doc-btn" onclick="deleteDocument('${escapeHtml(doc.filename)}')" title="Dokument löschen">
-                Löschen
-              </button>
-            </td>
-          </tr>
+          <div class="document-item">
+            <div class="document-name">${escapeHtml(doc.filename)}</div>
+            <div class="document-meta">
+              ${doc.chunks} Chunks • ${pages} Seiten • ${fileSize}
+            </div>
+            <div class="document-meta">
+              Indexiert: ${indexingTime} • ${date}
+            </div>
+          </div>
         `;
       }).join('');
-
-      documentsTable.innerHTML = `
-        <table class="documents-table">
-          <thead>
-            <tr>
-              <th>Dateiname</th>
-              <th>Chunks</th>
-              <th>Seiten</th>
-              <th>Größe</th>
-              <th>Indexierung</th>
-              <th>Hochgeladen</th>
-              <th>Aktionen</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRows}
-          </tbody>
-        </table>
-      `;
     } else {
-      documentsTable.innerHTML = '<p class="no-documents">Keine Dokumente hochgeladen</p>';
+      documentsList.innerHTML = '<p class="no-documents">Keine Dokumente hochgeladen</p>';
     }
   } catch (error) {
     console.error('Documents error:', error);
   }
 }
-
-// Delete Document
-async function deleteDocument(filename) {
-  if (!confirm(`Möchten Sie "${filename}" wirklich löschen?\n\nAlle ${filename} Chunks werden permanent gelöscht.`)) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/documents/${encodeURIComponent(filename)}`, {
-      method: 'DELETE'
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      alert(`✅ Dokument gelöscht:\n${filename}\n\n${data.deletedChunks} Chunks entfernt`);
-      await loadStats();
-      await loadDocuments();
-    } else {
-      alert(`❌ Fehler: ${data.error || 'Unbekannter Fehler'}`);
-    }
-  } catch (error) {
-    alert(`❌ Verbindungsfehler: ${error.message}`);
-  }
-}
-
-// Make deleteDocument available globally
-window.deleteDocument = deleteDocument;
 
 // Start
 init();

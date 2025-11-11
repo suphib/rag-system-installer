@@ -1,0 +1,285 @@
+// API Base URL - Anpassen falls nötig
+const API_BASE_URL = 'http://45.92.217.15:3000/api';
+
+// DOM Elemente
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+const uploadStatus = document.getElementById('uploadStatus');
+const uploadProgress = document.getElementById('uploadProgress');
+const chatContainer = document.getElementById('chatContainer');
+const questionInput = document.getElementById('questionInput');
+const sendButton = document.getElementById('sendButton');
+const refreshStatsButton = document.getElementById('refreshStatsButton');
+
+let hasDocuments = false;
+
+// ========== Initialisierung ==========
+async function init() {
+    setupEventListeners();
+    await loadStats();
+    await checkHealth();
+}
+
+// ========== Event Listeners ==========
+function setupEventListeners() {
+    // Upload Events
+    uploadArea.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // Drag & Drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('drag-over');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('drag-over');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileUpload(files[0]);
+        }
+    });
+
+    // Chat Events
+    sendButton.addEventListener('click', handleSendQuestion);
+    questionInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendQuestion();
+        }
+    });
+
+    // Stats Event
+    refreshStatsButton.addEventListener('click', loadStats);
+}
+
+// ========== File Upload ==========
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        handleFileUpload(file);
+    }
+}
+
+async function handleFileUpload(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+        showStatus('Nur PDF-Dateien werden unterstützt!', 'error');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    showStatus(`Lade "${file.name}" hoch...`, 'info');
+    showProgress(true);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/upload`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showStatus(
+                `✅ Erfolgreich hochgeladen: ${data.filename} (${data.chunks} Chunks in ${data.processingTime})`,
+                'success'
+            );
+            hasDocuments = true;
+            enableChat();
+            await loadStats();
+        } else {
+            showStatus(`❌ Fehler: ${data.error}`, 'error');
+        }
+    } catch (error) {
+        showStatus(`❌ Verbindungsfehler: ${error.message}`, 'error');
+    } finally {
+        showProgress(false);
+        fileInput.value = '';
+    }
+}
+
+// ========== Chat Funktionen ==========
+async function handleSendQuestion() {
+    const question = questionInput.value.trim();
+
+    if (!question) {
+        return;
+    }
+
+    // User-Nachricht anzeigen
+    addMessage(question, 'user');
+    questionInput.value = '';
+    questionInput.disabled = true;
+    sendButton.disabled = true;
+
+    // Loading-Indikator
+    const loadingId = addLoadingMessage();
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/chat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ question })
+        });
+
+        const data = await response.json();
+
+        removeMessage(loadingId);
+
+        if (response.ok) {
+            addMessage(data.answer, 'assistant', {
+                sources: data.sources,
+                processingTime: data.processingTime
+            });
+        } else {
+            addMessage(`Fehler: ${data.error}`, 'assistant', { isError: true });
+        }
+    } catch (error) {
+        removeMessage(loadingId);
+        addMessage(`Verbindungsfehler: ${error.message}`, 'assistant', { isError: true });
+    } finally {
+        questionInput.disabled = false;
+        sendButton.disabled = false;
+        questionInput.focus();
+    }
+}
+
+function addMessage(content, role, meta = {}) {
+    // Willkommens-Nachricht entfernen
+    const welcomeMsg = chatContainer.querySelector('.welcome-message');
+    if (welcomeMsg) {
+        welcomeMsg.remove();
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${role}`;
+    messageDiv.dataset.messageId = Date.now();
+
+    let metaHtml = '';
+    if (meta.processingTime) {
+        metaHtml += `<div class="message-meta">⏱️ ${meta.processingTime}</div>`;
+    }
+    if (meta.sources && meta.sources.length > 0) {
+        const sourceList = meta.sources.map(s =>
+            `📄 ${s.filename} (Chunk ${s.chunkIndex + 1}, Score: ${(s.score * 100).toFixed(1)}%)`
+        ).join('<br>');
+        metaHtml += `<div class="message-meta">Quellen:<br>${sourceList}</div>`;
+    }
+
+    messageDiv.innerHTML = `
+        <div class="message-header">${role === 'user' ? '👤 Sie' : '🤖 Assistent'}</div>
+        <div class="message-content">${escapeHtml(content)}</div>
+        ${metaHtml}
+    `;
+
+    chatContainer.appendChild(messageDiv);
+    messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+    return messageDiv.dataset.messageId;
+}
+
+function addLoadingMessage() {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message assistant';
+    const loadingId = 'loading-' + Date.now();
+    messageDiv.dataset.messageId = loadingId;
+
+    messageDiv.innerHTML = `
+        <div class="message-header">🤖 Assistent</div>
+        <div class="message-content"><span class="loading-indicator">Denke nach</span></div>
+    `;
+
+    chatContainer.appendChild(messageDiv);
+    messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+    return loadingId;
+}
+
+function removeMessage(messageId) {
+    const message = chatContainer.querySelector(`[data-message-id="${messageId}"]`);
+    if (message) {
+        message.remove();
+    }
+}
+
+function enableChat() {
+    questionInput.disabled = false;
+    sendButton.disabled = false;
+    questionInput.placeholder = 'Ihre Frage hier eingeben...';
+}
+
+// ========== Statistik ==========
+async function loadStats() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/stats`);
+        const data = await response.json();
+
+        if (response.ok) {
+            document.getElementById('docCount').textContent = data.pointsCount || 0;
+            document.getElementById('vectorCount').textContent = data.vectorCount || 0;
+
+            if (data.pointsCount > 0) {
+                hasDocuments = true;
+                enableChat();
+            }
+        }
+    } catch (error) {
+        console.error('Fehler beim Laden der Statistik:', error);
+    }
+}
+
+async function checkHealth() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/health`);
+        const data = await response.json();
+
+        const statusEl = document.getElementById('systemStatus');
+        if (response.ok && data.status === 'ok') {
+            statusEl.textContent = '✅ Online';
+            statusEl.style.color = 'var(--success-color)';
+        } else {
+            statusEl.textContent = '❌ Offline';
+            statusEl.style.color = 'var(--error-color)';
+        }
+    } catch (error) {
+        document.getElementById('systemStatus').textContent = '❌ Offline';
+        document.getElementById('systemStatus').style.color = 'var(--error-color)';
+    }
+}
+
+// ========== Hilfsfunktionen ==========
+function showStatus(message, type) {
+    uploadStatus.textContent = message;
+    uploadStatus.className = `status-message ${type}`;
+}
+
+function showProgress(show) {
+    if (show) {
+        uploadProgress.classList.remove('hidden');
+        uploadProgress.querySelector('.progress-fill').style.width = '100%';
+    } else {
+        setTimeout(() => {
+            uploadProgress.classList.add('hidden');
+            uploadProgress.querySelector('.progress-fill').style.width = '0%';
+        }, 500);
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML.replace(/\n/g, '<br>');
+}
+
+// ========== Start ==========
+init();

@@ -1,0 +1,80 @@
+import { QdrantClient } from '@qdrant/js-client-rest';
+
+export class QdrantService {
+  private client: QdrantClient;
+  private collectionName: string;
+
+  constructor(url: string = 'http://localhost:6333', collectionName: string = 'documents') {
+    this.client = new QdrantClient({ url });
+    this.collectionName = collectionName;
+  }
+
+  async upsertPoint(id: number, vector: number[], payload: any): Promise<void> {
+    await this.client.upsert(this.collectionName, {
+      wait: true,
+      points: [
+        {
+          id,
+          vector,
+          payload,
+        },
+      ],
+    });
+  }
+
+  async search(queryVector: number[], limit: number = 5) {
+    const results = await this.client.search(this.collectionName, {
+      vector: queryVector,
+      limit,
+      with_payload: true,
+    });
+    return results;
+  }
+
+  async getCollectionInfo() {
+    return await this.client.getCollection(this.collectionName);
+  }
+
+  async setPayload(pointId: number, payload: Record<string, any>) {
+    await this.client.setPayload(this.collectionName, {
+      points: [pointId],
+      payload,
+    });
+  }
+
+  async getDocuments() {
+    const scrollResult = await this.client.scroll(this.collectionName, {
+      limit: 1000,
+      with_payload: true,
+      with_vector: false
+    });
+
+    // Extract unique filenames with metadata
+    const filesMap = new Map();
+    for (const point of scrollResult.points) {
+      const filename = point.payload?.filename as string;
+      if (filename && !filesMap.has(filename)) {
+        filesMap.set(filename, {
+          filename,
+          uploadedAt: point.payload?.uploadedAt || null,
+          fileSize: point.payload?.fileSize || 0,
+          pages: point.payload?.pages || 0,
+          contentLength: point.payload?.contentLength || 0,
+          indexingTime: point.payload?.indexingTime || 0,
+          chunks: 1
+        });
+      } else if (filename) {
+        const doc = filesMap.get(filename);
+        doc.chunks++;
+        // Update indexingTime from first chunk
+        if (point.payload?.indexingTime) {
+          doc.indexingTime = point.payload.indexingTime;
+        }
+      }
+    }
+
+    return Array.from(filesMap.values()).sort((a, b) =>
+      (b.uploadedAt || 0) - (a.uploadedAt || 0)
+    );
+  }
+}
