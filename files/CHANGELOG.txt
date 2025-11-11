@@ -1,9 +1,59 @@
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
 ║   CHANGELOG - KRITISCHE FIXES                             ║
-║   Version 1.1.1 - November 2024                           ║
+║   Version 1.1.2 - November 2024                           ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
+
+🔧 VERSION 1.1.2 - UI IMPROVEMENTS
+===================================
+Date: November 11, 2024
+
+10. ✅ STATS DISPLAY FIX
+    Problem: "Indexiert" zeigte "-" statt "0" wenn indexed_vectors_count = 0
+    Fix:     Proper undefined check statt falsy check
+
+    Vorher: data.indexed_vectors_count || '-'  ❌ (0 wird als falsy behandelt)
+    Nachher: data.indexed_vectors_count !== undefined ? data.indexed_vectors_count : '-'  ✅
+
+    Dateien geändert:
+    - rag-ui/app.js (Zeile 345-346)
+
+11. ✅ CHAT LAYOUT OPTIMIERT
+    Problem: Chat hatte unnötigen Scrollbar und nutzte Höhe nicht optimal
+    Fix:     Flexible Height-System mit min-height statt fixed height
+
+    Änderungen:
+    - .main-layout: min-height calc(100vh - 320px) hinzugefügt
+    - .main-content: flex container für bessere Space-Distribution
+    - .chat-card: height 100% statt fixed calc(), min-height 400px statt 600px
+
+    Vorher:
+    .chat-card {
+        height: calc(100vh - 320px);
+        min-height: 600px;
+    }
+
+    Nachher:
+    .main-layout {
+        min-height: calc(100vh - 320px);
+    }
+    .chat-card {
+        height: 100%;
+        min-height: 400px;
+    }
+
+    Dateien geändert:
+    - rag-ui/style.css (Zeilen 225-235, 562-568)
+
+12. ✅ DEPLOYMENT SCRIPT HINZUGEFÜGT
+    Feature: deploy-to-server.sh für einfache Server-Updates
+    Verwendung: ./deploy-to-server.sh 45.92.217.15
+
+    Neue Dateien:
+    - rag-ui/deploy-to-server.sh
+
+═══════════════════════════════════════════════════════════
 
 🔧 VERSION 1.1.1 - POST-DEPLOYMENT FIXES
 =========================================
