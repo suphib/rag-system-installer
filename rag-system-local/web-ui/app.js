@@ -591,30 +591,83 @@ async function handleSendQuestion() {
   sendButton.disabled = true;
 
   const loadingId = addLoadingMessageWithTimer();
+  let assistantMessageId = null;
+  let sources = [];
+  let model = '';
+  let processingTime = 0;
+  let fullAnswer = '';
+  const startTime = Date.now();
 
   try {
-    const response = await fetch(`${API_BASE_URL}/chat`, {
+    const response = await fetch(`${API_BASE_URL}/chat/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question })
     });
 
-    const data = await response.json();
-    removeMessage(loadingId);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
-    if (response.ok) {
-      lastQueryTime = data.processingTime;
-      updateLastQueryTime();
-      addMessage(data.answer, 'assistant', {
-        sources: data.sources,
-        processingTime: data.processingTime,
-        model: data.model
-      });
-    } else {
-      addMessage(`Fehler: ${data.error}`, 'assistant', { isError: true });
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') continue;
+
+          try {
+            const event = JSON.parse(data);
+
+            if (event.type === 'sources') {
+              // Remove loading message and create assistant message
+              removeMessage(loadingId);
+              sources = event.data.sources;
+              model = event.data.model;
+              assistantMessageId = addStreamingMessage('', 'assistant', {
+                sources,
+                model,
+                processingTime: 0
+              });
+            } else if (event.type === 'chunk' && assistantMessageId) {
+              // Append chunk to assistant message
+              fullAnswer += event.data;
+              updateStreamingMessage(assistantMessageId, fullAnswer);
+            } else if (event.type === 'done') {
+              processingTime = event.data.processingTime;
+              lastQueryTime = processingTime;
+              updateLastQueryTime();
+              // Update with final processing time
+              finalizeStreamingMessage(assistantMessageId, fullAnswer, {
+                sources,
+                model,
+                processingTime
+              });
+            } else if (event.type === 'error') {
+              removeMessage(loadingId);
+              addMessage(`Fehler: ${event.data.error}`, 'assistant', { isError: true });
+            }
+          } catch (e) {
+            console.error('Parse error:', e);
+          }
+        }
+      }
     }
   } catch (error) {
     removeMessage(loadingId);
+    if (assistantMessageId) {
+      removeMessage(assistantMessageId);
+    }
     addMessage(`Verbindungsfehler: ${error.message}`, 'assistant', { isError: true });
   } finally {
     questionInput.disabled = false;
@@ -685,6 +738,96 @@ function addMessage(content, role, meta = {}) {
   });
 
   return messageDiv.dataset.messageId;
+}
+
+// Streaming message functions
+function addStreamingMessage(content, role, meta = {}) {
+  const welcomeMsg = chatContainer.querySelector('.welcome-message');
+  if (welcomeMsg) {
+    welcomeMsg.style.opacity = '0';
+    setTimeout(() => welcomeMsg.remove(), 300);
+  }
+
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${role}`;
+  const messageId = 'msg-' + Date.now();
+  messageDiv.dataset.messageId = messageId;
+  messageDiv.style.opacity = '0';
+
+  let metaHtml = '';
+
+  // Model badge for assistant messages
+  if (role === 'assistant' && meta.model) {
+    const modelDisplay = meta.model
+      .replace('command-r:', 'Command R ')
+      .replace('qwen2-math:', 'Qwen2 Math ')
+      .replace('falcon3:', 'Falcon3 ')
+      .replace('llama3.1:', 'Llama 3.1 ')
+      .replace('mistral:', 'Mistral ')
+      .replace('qwen2.5:', 'Qwen 2.5 ')
+      .replace('phi3:', 'Phi3 ')
+      .replace(':35b', ' 35B')
+      .replace(':14b', ' 14B')
+      .replace(':8b', ' 8B')
+      .replace(':7b', ' 7B');
+    metaHtml += `<div class="message-meta"><span class="model-badge">🤖 ${modelDisplay}</span>`;
+    metaHtml += ` <span class="timer typing-indicator">⌛ Schreibt...</span>`;
+    metaHtml += `</div>`;
+  }
+
+  // Sources
+  if (meta.sources && meta.sources.length > 0) {
+    const sourceList = meta.sources.map(s =>
+      typeof s === 'string' ? `<span class="source-badge">📄 ${escapeHtml(s)}</span>` :
+      `<span class="source-badge">📄 ${escapeHtml(s.filename)}</span>`
+    ).join('');
+    metaHtml += `<div class="message-meta sources-meta">Quellen: ${sourceList}</div>`;
+  }
+
+  const contentHtml = content ? renderMarkdown(content) : '<span class="typing-cursor">|</span>';
+
+  messageDiv.innerHTML = `
+    <div class="message-header">🤖 Assistent</div>
+    <div class="message-content">${contentHtml}</div>
+    ${metaHtml}
+  `;
+
+  chatContainer.appendChild(messageDiv);
+  requestAnimationFrame(() => {
+    messageDiv.style.opacity = '1';
+    messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  });
+
+  return messageId;
+}
+
+function updateStreamingMessage(messageId, content) {
+  const messageDiv = chatContainer.querySelector(`[data-message-id="${messageId}"]`);
+  if (!messageDiv) return;
+
+  const contentDiv = messageDiv.querySelector('.message-content');
+  if (contentDiv) {
+    contentDiv.innerHTML = renderMarkdown(content) + '<span class="typing-cursor">|</span>';
+    messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+}
+
+function finalizeStreamingMessage(messageId, content, meta) {
+  const messageDiv = chatContainer.querySelector(`[data-message-id="${messageId}"]`);
+  if (!messageDiv) return;
+
+  const contentDiv = messageDiv.querySelector('.message-content');
+  if (contentDiv) {
+    contentDiv.innerHTML = renderMarkdown(content);
+  }
+
+  // Update processing time
+  const timerSpan = messageDiv.querySelector('.timer');
+  if (timerSpan && meta.processingTime) {
+    const seconds = (meta.processingTime / 1000).toFixed(1);
+    timerSpan.textContent = `⏱️ ${seconds}s`;
+    timerSpan.classList.remove('typing-indicator');
+  }
 }
 
 function addLoadingMessageWithTimer() {

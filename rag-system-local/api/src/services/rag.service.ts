@@ -113,6 +113,47 @@ Antwort (auf Deutsch, präzise und basierend nur auf dem Kontext):`;
     };
   }
 
+  async *chatStream(request: ChatRequest): AsyncGenerator<{ type: 'sources' | 'chunk' | 'done', data: any }> {
+    const startTime = Date.now();
+    const { question, maxResults = 5 } = request;
+
+    // 1. Generate embedding for question
+    console.log('Generating question embedding...');
+    const questionEmbedding = await this.ollama.generateEmbedding(question);
+
+    // 2. Search for similar chunks
+    console.log('Searching for relevant documents...');
+    const searchResults = await this.qdrant.search(questionEmbedding, maxResults);
+
+    // 3. Build context from results
+    const context = searchResults
+      .map((result: any) => result.payload.text)
+      .join('\n\n---\n\n');
+
+    const sources = [...new Set(searchResults.map((r: any) => r.payload.filename))];
+
+    // Send sources first
+    yield { type: 'sources', data: { sources, model: this.ollama.getModelName() } };
+
+    // 4. Generate answer with context (streaming)
+    console.log('Streaming answer...');
+    const prompt = `Du bist ein hilfreicher Assistent für Dokumentenanalyse. Beantworte die Frage basierend auf dem gegebenen Kontext.
+
+Kontext:
+${context}
+
+Frage: ${question}
+
+Antwort (auf Deutsch, präzise und basierend nur auf dem Kontext):`;
+
+    for await (const chunk of this.ollama.generateStream(prompt)) {
+      yield { type: 'chunk', data: chunk };
+    }
+
+    const processingTime = Date.now() - startTime;
+    yield { type: 'done', data: { processingTime } };
+  }
+
   private chunkText(text: string, chunkSize: number = 1000): string[] {
     const chunks: string[] = [];
     const paragraphs = text.split('\n\n');

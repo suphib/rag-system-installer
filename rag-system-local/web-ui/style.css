@@ -1621,3 +1621,31 @@ footer {
     border-color: rgba(99, 102, 241, 0.4);
     color: var(--primary-400);
 }
+
+/* Streaming Typing Cursor */
+.typing-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    background: var(--primary);
+    margin-left: 2px;
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+.typing-indicator {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.dark-mode .typing-cursor {
+    background: var(--primary-400);
+}

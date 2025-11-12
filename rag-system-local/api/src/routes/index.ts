@@ -209,6 +209,37 @@ router.post('/chat', async (req, res) => {
   }
 });
 
+// Chat streaming endpoint (Server-Sent Events)
+router.post('/chat/stream', async (req, res) => {
+  try {
+    const { question, maxResults } = req.body;
+
+    if (!question) {
+      return res.status(400).json({ error: 'Question is required' });
+    }
+
+    console.log(`Streaming question: ${question}`);
+
+    // Set headers for Server-Sent Events
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+
+    // Stream the response
+    for await (const event of ragService.chatStream({ question, maxResults })) {
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+    }
+
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (error: any) {
+    console.error('Stream error:', error);
+    res.write(`data: ${JSON.stringify({ type: 'error', data: { error: error.message } })}\n\n`);
+    res.end();
+  }
+});
+
 // Get collection stats
 router.get('/stats', async (req, res) => {
   try {
