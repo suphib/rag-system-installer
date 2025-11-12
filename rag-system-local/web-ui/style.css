@@ -1097,3 +1097,366 @@ footer {
         gap: var(--spacing-sm);
     }
 }
+
+/* ==========================================
+   Toast Notifications
+   ========================================== */
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.toast {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 320px;
+    max-width: 450px;
+    pointer-events: auto;
+    transform: translateX(400px);
+    opacity: 0;
+    animation: slideIn 0.3s ease-out forwards;
+    border-left: 4px solid var(--primary-500);
+}
+
+.toast.removing {
+    animation: slideOut 0.3s ease-in forwards;
+}
+
+@keyframes slideIn {
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.toast-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.toast-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.toast-message {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-size: 18px;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.toast-close:hover {
+    background: var(--gray-100);
+    color: var(--text-primary);
+}
+
+/* Toast Types */
+.toast.success {
+    border-left-color: var(--success);
+}
+
+.toast.success .toast-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.toast.error {
+    border-left-color: var(--error);
+}
+
+.toast.error .toast-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+.toast.warning {
+    border-left-color: var(--warning);
+}
+
+.toast.warning .toast-icon {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.toast.info {
+    border-left-color: var(--info);
+}
+
+.toast.info .toast-icon {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--info);
+}
+
+/* Dark Mode */
+.dark-mode .toast {
+    background: var(--gray-800);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode .toast-title {
+    color: var(--gray-100);
+}
+
+.dark-mode .toast-message {
+    color: var(--gray-400);
+}
+
+.dark-mode .toast-close {
+    color: var(--gray-500);
+}
+
+.dark-mode .toast-close:hover {
+    background: var(--gray-700);
+    color: var(--gray-300);
+}
+
+/* ==========================================
+   Confirmation Modal
+   ========================================== */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    animation: fadeIn 0.2s ease-out forwards;
+}
+
+.modal-overlay.removing {
+    animation: fadeOut 0.2s ease-in forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+    }
+}
+
+.modal {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    max-width: 480px;
+    width: 90%;
+    transform: scale(0.9);
+    animation: modalIn 0.3s ease-out forwards;
+}
+
+.modal-overlay.removing .modal {
+    animation: modalOut 0.2s ease-in forwards;
+}
+
+@keyframes modalIn {
+    to {
+        transform: scale(1);
+    }
+}
+
+@keyframes modalOut {
+    to {
+        transform: scale(0.9);
+    }
+}
+
+.modal-header {
+    padding: 24px 24px 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.modal-icon.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.modal-body {
+    padding: 20px 24px;
+}
+
+.modal-message {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.modal-details {
+    background: var(--gray-50);
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-tertiary);
+}
+
+.modal-footer {
+    padding: 16px 24px 24px 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.modal-button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    outline: none;
+}
+
+.modal-button.cancel {
+    background: var(--gray-100);
+    color: var(--text-primary);
+}
+
+.modal-button.cancel:hover {
+    background: var(--gray-200);
+}
+
+.modal-button.confirm {
+    background: var(--error);
+    color: white;
+}
+
+.modal-button.confirm:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.modal-button:active {
+    transform: translateY(0);
+}
+
+/* Dark Mode */
+.dark-mode .modal {
+    background: var(--gray-800);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .modal-header {
+    border-bottom-color: var(--gray-700);
+}
+
+.dark-mode .modal-title {
+    color: var(--gray-100);
+}
+
+.dark-mode .modal-message {
+    color: var(--gray-400);
+}
+
+.dark-mode .modal-details {
+    background: var(--gray-900);
+    color: var(--gray-500);
+}
+
+.dark-mode .modal-button.cancel {
+    background: var(--gray-700);
+    color: var(--gray-300);
+}
+
+.dark-mode .modal-button.cancel:hover {
+    background: var(--gray-600);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .toast-container {
+        left: 10px;
+        right: 10px;
+        top: 10px;
+    }
+
+    .toast {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .modal {
+        margin: 20px;
+    }
+}

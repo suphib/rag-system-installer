@@ -56,7 +56,7 @@
                     </div>
                     <div class="card-body">
                         <div class="upload-area" id="uploadArea">
-                            <input type="file" id="fileInput" accept=".pdf" hidden>
+                            <input type="file" id="fileInput" accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt" hidden>
                             <div class="upload-content">
                                 <div class="upload-icon-wrapper">
                                     <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -66,9 +66,9 @@
                                     </svg>
                                 </div>
                                 <p class="upload-title">Datei hochladen</p>
-                                <p class="upload-hint">Ziehen Sie eine PDF hierher<br>oder klicken Sie zum Auswählen</p>
+                                <p class="upload-hint">Ziehen Sie ein Dokument hierher<br>oder klicken Sie zum Auswählen</p>
                                 <div class="file-format-badge">
-                                    <span>📄 PDF</span>
+                                    <span>📄 PDF • 📊 Excel • 📝 Word • 📊 PowerPoint</span>
                                 </div>
                             </div>
                         </div>
@@ -187,6 +187,9 @@
             </div>
         </footer>
     </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
 
     <script src="app.js"></script>
 </body>

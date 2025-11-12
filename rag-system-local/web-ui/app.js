@@ -17,6 +17,117 @@ let hasDocuments = false;
 let activeTimer = null;
 let lastQueryTime = 0;
 
+// Helper function to get file icon
+function getFileIcon(filename) {
+  const ext = filename.toLowerCase();
+  if (ext.endsWith('.pdf')) return '📄';
+  if (ext.endsWith('.xlsx') || ext.endsWith('.xls')) return '📊';
+  if (ext.endsWith('.docx') || ext.endsWith('.doc')) return '📝';
+  if (ext.endsWith('.pptx') || ext.endsWith('.ppt')) return '📊';
+  return '📎';
+}
+
+// Helper function to format metadata
+function getMetadataText(doc) {
+  const parts = [];
+  parts.push(`${doc.chunks} Chunks`);
+
+  if (doc.pages) parts.push(`${doc.pages} Seiten`);
+  if (doc.sheetCount) parts.push(`${doc.sheetCount} Sheets`);
+  if (doc.slideCount) parts.push(`${doc.slideCount} Slides`);
+  if (doc.wordCount) parts.push(`${doc.wordCount} Wörter`);
+
+  if (doc.fileSize) {
+    const size = doc.fileSize > 1024 * 1024
+      ? `${(doc.fileSize / (1024 * 1024)).toFixed(1)} MB`
+      : `${(doc.fileSize / 1024).toFixed(1)} KB`;
+    parts.push(size);
+  }
+
+  return parts.join(' • ');
+}
+
+// Toast Notification System
+function showToast(title, message, type = 'info', duration = 5000) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+
+  const icons = {
+    success: '✓',
+    error: '✕',
+    warning: '⚠',
+    info: 'ℹ'
+  };
+
+  toast.innerHTML = `
+    <div class="toast-icon">${icons[type] || icons.info}</div>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      ${message ? `<div class="toast-message">${message}</div>` : ''}
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+  `;
+
+  container.appendChild(toast);
+
+  // Auto remove after duration
+  if (duration > 0) {
+    setTimeout(() => {
+      toast.classList.add('removing');
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
+
+  return toast;
+}
+
+// Confirmation Modal
+function showConfirmModal(options) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    overlay.innerHTML = `
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">
+            <div class="modal-icon warning">${options.icon || '⚠️'}</div>
+            <span>${options.title || 'Bestätigung erforderlich'}</span>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="modal-message">${options.message || ''}</div>
+          ${options.details ? `<div class="modal-details">${options.details}</div>` : ''}
+        </div>
+        <div class="modal-footer">
+          <button class="modal-button cancel">${options.cancelText || 'Abbrechen'}</button>
+          <button class="modal-button confirm">${options.confirmText || 'Löschen'}</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const cancelBtn = overlay.querySelector('.modal-button.cancel');
+    const confirmBtn = overlay.querySelector('.modal-button.confirm');
+
+    const close = (result) => {
+      overlay.classList.add('removing');
+      setTimeout(() => {
+        overlay.remove();
+        resolve(result);
+      }, 200);
+    };
+
+    cancelBtn.addEventListener('click', () => close(false));
+    confirmBtn.addEventListener('click', () => close(true));
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) close(false);
+    });
+  });
+}
+
 // Initialize
 async function init() {
   setupEventListeners();
@@ -105,8 +216,12 @@ function handleFileSelect(event) {
 }
 
 async function handleFileUpload(file) {
-  if (!file.name.toLowerCase().endsWith('.pdf')) {
-    showStatus('Nur PDF-Dateien werden unterstützt!', 'error');
+  const ext = file.name.toLowerCase();
+  const validExtensions = ['.pdf', '.xlsx', '.xls', '.docx', '.doc', '.pptx', '.ppt'];
+  const isValid = validExtensions.some(validExt => ext.endsWith(validExt));
+
+  if (!isValid) {
+    showStatus('Unterstützte Formate: PDF, Excel, Word, PowerPoint', 'error');
     return;
   }
 
@@ -443,8 +558,16 @@ async function loadDocuments() {
           minute: '2-digit'
         }) : 'Unbekannt';
 
+        const fileIcon = getFileIcon(doc.filename);
         const fileSize = doc.fileSize ? formatFileSize(doc.fileSize) : '-';
-        const pages = doc.pages || '-';
+
+        // File-specific metadata
+        let infoCell = '-';
+        if (doc.pages) infoCell = `${doc.pages} Seiten`;
+        else if (doc.sheetCount) infoCell = `${doc.sheetCount} Sheets`;
+        else if (doc.slideCount) infoCell = `${doc.slideCount} Slides`;
+        else if (doc.wordCount) infoCell = `${doc.wordCount} Wörter`;
+
         const indexingTime = doc.indexingTime ? `${(doc.indexingTime / 1000).toFixed(1)}s` : '-';
 
         return `
@@ -453,20 +576,20 @@ async function loadDocuments() {
               <a href="${API_BASE_URL}/documents/${encodeURIComponent(doc.filename)}/view"
                  target="_blank"
                  class="pdf-link"
-                 title="PDF in neuem Tab öffnen">
-                ${escapeHtml(doc.filename)}
+                 title="Datei in neuem Tab öffnen">
+                ${fileIcon} ${escapeHtml(doc.filename)}
               </a>
             </td>
             <td class="number-cell">${doc.chunks}</td>
-            <td class="number-cell">${pages}</td>
+            <td class="number-cell">${infoCell}</td>
             <td class="number-cell">${fileSize}</td>
             <td class="number-cell">${indexingTime}</td>
             <td class="date-cell">${date}</td>
             <td class="actions-cell">
-              <button class="view-doc-btn" onclick="window.open('${API_BASE_URL}/documents/${encodeURIComponent(doc.filename)}/view', '_blank')" title="PDF ansehen">
+              <button class="view-doc-btn" onclick="window.open('${API_BASE_URL}/documents/${encodeURIComponent(doc.filename)}/view', '_blank')" title="Datei ansehen">
                 Ansehen
               </button>
-              <button class="download-doc-btn" onclick="window.location.href='${API_BASE_URL}/documents/${encodeURIComponent(doc.filename)}/download'" title="PDF herunterladen">
+              <button class="download-doc-btn" onclick="window.location.href='${API_BASE_URL}/documents/${encodeURIComponent(doc.filename)}/download'" title="Datei herunterladen">
                 Download
               </button>
               <button class="delete-doc-btn" onclick="deleteDocument('${escapeHtml(doc.filename)}')" title="Dokument löschen">
@@ -483,7 +606,7 @@ async function loadDocuments() {
             <tr>
               <th>Dateiname</th>
               <th>Chunks</th>
-              <th>Seiten</th>
+              <th>Info</th>
               <th>Größe</th>
               <th>Indexierung</th>
               <th>Hochgeladen</th>
@@ -505,9 +628,16 @@ async function loadDocuments() {
 
 // Delete Document
 async function deleteDocument(filename) {
-  if (!confirm(`Möchten Sie "${filename}" wirklich löschen?\n\nAlle ${filename} Chunks werden permanent gelöscht.`)) {
-    return;
-  }
+  const confirmed = await showConfirmModal({
+    title: 'Dokument löschen',
+    icon: '🗑️',
+    message: `Möchten Sie "${filename}" wirklich unwiderruflich löschen?`,
+    details: 'Alle Chunks und Vektoren werden permanent aus der Datenbank entfernt.',
+    confirmText: 'Ja, löschen',
+    cancelText: 'Abbrechen'
+  });
+
+  if (!confirmed) return;
 
   try {
     const response = await fetch(`${API_BASE_URL}/documents/${encodeURIComponent(filename)}`, {
@@ -517,14 +647,26 @@ async function deleteDocument(filename) {
     const data = await response.json();
 
     if (response.ok) {
-      alert(`✅ Dokument gelöscht:\n${filename}\n\n${data.deletedChunks} Chunks entfernt`);
+      showToast(
+        'Erfolgreich gelöscht',
+        `"${filename}" wurde mit ${data.deletedChunks} Chunks entfernt`,
+        'success'
+      );
       await loadStats();
       await loadDocuments();
     } else {
-      alert(`❌ Fehler: ${data.error || 'Unbekannter Fehler'}`);
+      showToast(
+        'Fehler beim Löschen',
+        data.error || 'Das Dokument konnte nicht gelöscht werden',
+        'error'
+      );
     }
   } catch (error) {
-    alert(`❌ Verbindungsfehler: ${error.message}`);
+    showToast(
+      'Verbindungsfehler',
+      `Konnte nicht mit Server verbinden: ${error.message}`,
+      'error'
+    );
   }
 }
 
