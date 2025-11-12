@@ -129,6 +129,15 @@ function showConfirmModal(options) {
 }
 
 // Model Management
+function getModelDescription(modelName) {
+  const name = modelName.toLowerCase();
+  if (name.includes('mistral')) return 'schnell';
+  if (name.includes('70b')) return 'sehr präzise';
+  if (name.includes('8b') && name.includes('3.1')) return 'balanced';
+  if (name.includes('3b')) return 'ultraschnell';
+  return 'standard';
+}
+
 async function loadCurrentModel() {
   try {
     const response = await fetch(`${API_BASE_URL}/model`);
@@ -145,7 +154,14 @@ async function loadCurrentModel() {
           data.available.forEach(model => {
             const option = document.createElement('option');
             option.value = model.value;
-            option.textContent = model.label;
+
+            // Calculate size in GB
+            const sizeGB = (model.size / (1024 * 1024 * 1024)).toFixed(1);
+            const description = getModelDescription(model.value);
+
+            // Format: "Llama 3.1 8B • 4.7GB • balanced"
+            option.textContent = `${model.label} • ${sizeGB}GB • ${description}`;
+
             modelSelect.appendChild(option);
           });
 
