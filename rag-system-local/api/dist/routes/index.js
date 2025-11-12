@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const multer_1 = __importDefault(require("multer"));
 const pdf_parse_1 = __importDefault(require("pdf-parse"));
 const fs_1 = __importDefault(require("fs"));
+const axios_1 = __importDefault(require("axios"));
 const rag_service_1 = require("../services/rag.service");
 const qdrant_service_1 = require("../services/qdrant.service");
 const excel_service_1 = require("../services/excel.service");
@@ -23,32 +24,75 @@ const pptService = new powerpoint_service_1.PowerPointService();
 router.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
-// Get current model
-router.get('/model', (req, res) => {
+// Get current model and available models from Ollama
+router.get('/model', async (req, res) => {
     try {
         const currentModel = ragService.getCurrentModel();
-        res.json({ model: currentModel });
+        // Fetch available models from Ollama
+        const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
+        const response = await axios_1.default.get(`${ollamaUrl}/api/tags`);
+        // Filter out embedding models and format for frontend
+        const available = response.data.models
+            .filter((m) => !m.name.includes('embed') && !m.name.includes('nomic'))
+            .map((m) => ({
+            value: m.name,
+            label: formatModelName(m.name),
+            size: m.size,
+            modified: m.modified_at
+        }));
+        res.json({
+            model: currentModel,
+            available
+        });
     }
     catch (error) {
         console.error('Get model error:', error);
         res.status(500).json({ error: error.message });
     }
 });
-// Set model
-router.post('/model', (req, res) => {
+// Set model with validation
+router.post('/model', async (req, res) => {
     try {
         const { model } = req.body;
         if (!model) {
             return res.status(400).json({ error: 'Model name is required' });
         }
+        // Validate model exists in Ollama
+        const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
+        const response = await axios_1.default.get(`${ollamaUrl}/api/tags`);
+        const availableModels = response.data.models.map((m) => m.name);
+        if (!availableModels.includes(model)) {
+            return res.status(400).json({
+                error: `Model '${model}' not found. Available models: ${availableModels.filter((m) => !m.includes('embed')).join(', ')}`
+            });
+        }
+        console.log(`🔄 Switching model to: ${model}`);
         ragService.setModel(model);
-        res.json({ success: true, model });
+        res.json({
+            success: true,
+            model,
+            message: `Model switched to ${model}`
+        });
     }
     catch (error) {
         console.error('Set model error:', error);
         res.status(500).json({ error: error.message });
     }
 });
+// Helper function to format model names for display
+function formatModelName(name) {
+    return name
+        .replace('llama3.1:', 'Llama 3.1 ')
+        .replace('llama3.2:', 'Llama 3.2 ')
+        .replace('llama3:', 'Llama 3 ')
+        .replace('mistral:', 'Mistral ')
+        .replace(':latest', '')
+        .replace(':8b', '8B')
+        .replace(':13b', '13B')
+        .replace(':70b', '70B')
+        .replace(':7b', '7B')
+        .replace(':3b', '3B');
+}
 // Upload and index documents (PDF, Excel, Word, PowerPoint)
 router.post('/upload', upload.single('file'), async (req, res) => {
     const startTime = Date.now();

@@ -134,15 +134,41 @@ async function loadCurrentModel() {
     const response = await fetch(`${API_BASE_URL}/model`);
     const data = await response.json();
 
-    if (response.ok && data.model) {
+    if (response.ok) {
       const modelSelect = document.getElementById('modelSelect');
       if (modelSelect) {
-        modelSelect.value = data.model;
+        // Clear existing options
+        modelSelect.innerHTML = '';
+
+        // Add available models from backend
+        if (data.available && data.available.length > 0) {
+          data.available.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model.value;
+            option.textContent = model.label;
+            modelSelect.appendChild(option);
+          });
+
+          // Set current model as selected
+          modelSelect.value = data.model;
+          console.log(`Current model: ${data.model}, Available: ${data.available.length} models`);
+        } else {
+          // Fallback if no models available
+          const option = document.createElement('option');
+          option.value = data.model || 'llama3.1:8b';
+          option.textContent = data.model || 'llama3.1:8b';
+          modelSelect.appendChild(option);
+          modelSelect.value = data.model;
+        }
       }
-      console.log(`Current model: ${data.model}`);
     }
   } catch (error) {
     console.error('Failed to load current model:', error);
+    // Fallback UI
+    const modelSelect = document.getElementById('modelSelect');
+    if (modelSelect) {
+      modelSelect.innerHTML = '<option value="llama3.1:8b">Llama 3.1 8B (offline)</option>';
+    }
   }
 }
 
@@ -188,73 +214,8 @@ async function handleModelChange(event) {
 }
 
 function showModelInfo() {
-  const modelInfo = {
-    'llama3.1:8b': {
-      name: 'Llama 3.1 8B',
-      icon: '⚡',
-      speed: 'Schnell',
-      quality: 'Gut',
-      ram: '8-12 GB',
-      description: 'Empfohlen für die meisten Anwendungen. Bietet eine ausgewogene Balance zwischen Geschwindigkeit und Qualität.',
-      useCase: 'Standard-Dokumentenanalyse, allgemeine Fragen, schnelle Antworten',
-      tokens: '~20-30 Tokens/Sek'
-    },
-    'llama3.1:13b': {
-      name: 'Llama 3.1 13B',
-      icon: '🎯',
-      speed: 'Mittel',
-      quality: 'Sehr gut',
-      ram: '16-20 GB',
-      description: 'Bessere Antwortqualität und tieferes Verständnis komplexer Dokumente. Langsamer aber präziser.',
-      useCase: 'Komplexe Analysen, technische Dokumente, detaillierte Zusammenfassungen',
-      tokens: '~10-15 Tokens/Sek'
-    },
-    'llama3.1:70b': {
-      name: 'Llama 3.1 70B',
-      icon: '🔥',
-      speed: 'Langsam',
-      quality: 'Exzellent',
-      ram: '40+ GB',
-      description: 'Premium-Model mit höchster Qualität. Beste Ergebnisse für anspruchsvolle Aufgaben. Benötigt viel RAM und ist deutlich langsamer.',
-      useCase: 'Kritische Analysen, wissenschaftliche Arbeiten, höchste Präzision',
-      tokens: '~3-5 Tokens/Sek'
-    },
-    'llama3.2:3b': {
-      name: 'Llama 3.2 3B',
-      icon: '⚡⚡',
-      speed: 'Sehr schnell',
-      quality: 'Grundlegend',
-      ram: '4-6 GB',
-      description: 'Ultra-schnelles Model für einfache Aufgaben. Ideal bei begrenzten Ressourcen oder wenn Geschwindigkeit wichtiger als Detailtiefe ist.',
-      useCase: 'Einfache Fragen, schnelle Suchen, Ressourcen-schonend',
-      tokens: '~40-50 Tokens/Sek'
-    }
-  };
-
-  const currentModel = document.getElementById('modelSelect').value;
-  const info = modelInfo[currentModel];
-
-  const confirmed = showConfirmModal({
-    title: `${info.icon} ${info.name}`,
-    icon: '📊',
-    message: info.description,
-    details: `
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
-        <div><strong>⚡ Geschwindigkeit:</strong> ${info.speed}</div>
-        <div><strong>🎯 Qualität:</strong> ${info.quality}</div>
-        <div><strong>💾 RAM-Bedarf:</strong> ${info.ram}</div>
-        <div><strong>🚀 Performance:</strong> ${info.tokens}</div>
-      </div>
-      <div style="margin-top: 12px;"><strong>💡 Verwendung:</strong><br>${info.useCase}</div>
-    `,
-    confirmText: 'Verstanden',
-    cancelText: 'Andere Models anzeigen'
-  }).then(result => {
-    if (!result) {
-      // Show all models comparison
-      showAllModelsComparison();
-    }
-  });
+  // Direkt die Vergleichstabelle zeigen
+  showAllModelsComparison();
 }
 
 function showAllModelsComparison() {

@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import pdfParse from 'pdf-parse';
 import fs from 'fs';
+import axios from 'axios';
 import { RagService } from '../services/rag.service';
 import { QdrantService } from '../services/qdrant.service';
 import { ExcelService } from '../services/excel.service';
@@ -21,31 +22,82 @@ router.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Get current model
-router.get('/model', (req, res) => {
+// Get current model and available models from Ollama
+router.get('/model', async (req, res) => {
   try {
     const currentModel = ragService.getCurrentModel();
-    res.json({ model: currentModel });
+
+    // Fetch available models from Ollama
+    const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
+    const response = await axios.get(`${ollamaUrl}/api/tags`);
+
+    // Filter out embedding models and format for frontend
+    const available = response.data.models
+      .filter((m: any) => !m.name.includes('embed') && !m.name.includes('nomic'))
+      .map((m: any) => ({
+        value: m.name,
+        label: formatModelName(m.name),
+        size: m.size,
+        modified: m.modified_at
+      }));
+
+    res.json({
+      model: currentModel,
+      available
+    });
   } catch (error: any) {
     console.error('Get model error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Set model
-router.post('/model', (req, res) => {
+// Set model with validation
+router.post('/model', async (req, res) => {
   try {
     const { model } = req.body;
     if (!model) {
       return res.status(400).json({ error: 'Model name is required' });
     }
+
+    // Validate model exists in Ollama
+    const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
+    const response = await axios.get(`${ollamaUrl}/api/tags`);
+    const availableModels = response.data.models.map((m: any) => m.name);
+
+    if (!availableModels.includes(model)) {
+      return res.status(400).json({
+        error: `Model '${model}' not found. Available models: ${availableModels.filter((m: string) => !m.includes('embed')).join(', ')}`
+      });
+    }
+
+    console.log(`🔄 Switching model to: ${model}`);
     ragService.setModel(model);
-    res.json({ success: true, model });
+
+    res.json({
+      success: true,
+      model,
+      message: `Model switched to ${model}`
+    });
   } catch (error: any) {
     console.error('Set model error:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
+// Helper function to format model names for display
+function formatModelName(name: string): string {
+  return name
+    .replace('llama3.1:', 'Llama 3.1 ')
+    .replace('llama3.2:', 'Llama 3.2 ')
+    .replace('llama3:', 'Llama 3 ')
+    .replace('mistral:', 'Mistral ')
+    .replace(':latest', '')
+    .replace(':8b', '8B')
+    .replace(':13b', '13B')
+    .replace(':70b', '70B')
+    .replace(':7b', '7B')
+    .replace(':3b', '3B');
+}
 
 // Upload and index documents (PDF, Excel, Word, PowerPoint)
 router.post('/upload', upload.single('file'), async (req, res) => {
