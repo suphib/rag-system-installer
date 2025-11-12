@@ -131,7 +131,6 @@ function showConfirmModal(options) {
 // Model Management
 function getModelDescription(modelName) {
   const name = modelName.toLowerCase();
-  if (name.includes('tinyllama') || name.includes('tiny')) return 'winzig';
   if (name.includes('qwen2-math')) return 'math spezialist';
   if (name.includes('falcon3')) return 'math+code+science';
   if (name.includes('mistral')) return 'schnell';
@@ -139,7 +138,6 @@ function getModelDescription(modelName) {
   if (name.includes('qwen')) return 'top qualität';
   if (name.includes('phi3') || name.includes('phi:14')) return 'bestes deutsch';
   if (name.includes('8b') && name.includes('3.1')) return 'balanced';
-  if (name.includes('3b')) return 'ultraschnell';
   return 'standard';
 }
 
@@ -270,18 +268,6 @@ function showAllModelsComparison() {
                 </tr>
               </thead>
               <tbody>
-                <tr style="background: rgba(147, 51, 234, 0.05);">
-                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>TinyLlama 1.1B 🐭</strong></td>
-                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">637 MB</td>
-                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Winzig aber brauchbar, Tests</td>
-                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">60-80 tok/s</td>
-                </tr>
-                <tr style="background: rgba(245, 158, 11, 0.05);">
-                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Llama 3.2 3B ⚡⚡</strong></td>
-                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">2.0 GB</td>
-                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Einfache Fragen, sehr schnell</td>
-                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">40-50 tok/s</td>
-                </tr>
                 <tr style="background: rgba(168, 85, 247, 0.05);">
                   <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Mistral 7B 🚀</strong></td>
                   <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">4.4 GB</td>
@@ -331,7 +317,7 @@ function showAllModelsComparison() {
 
         <!-- Tab 2: Setup Recommendations -->
         <div class="modal-tab-content" id="tab-setups">
-          <div style="display: flex; flex-direction: column; gap: 20px;">
+          <div style="display: flex; flex-direction: column; gap: 20px; max-height: 500px; overflow-y: auto; padding-right: 8px;">
 
             <!-- Setup 1 -->
             <div style="border: 2px solid #10b981; border-radius: 8px; padding: 16px; background: rgba(16, 185, 129, 0.05);">
@@ -654,27 +640,17 @@ function addMessage(content, role, meta = {}) {
   // Model badge for assistant messages
   if (role === 'assistant' && meta.model) {
     const modelDisplay = meta.model
-      .replace('tinyllama:', 'TinyLlama ')
       .replace('command-r:', 'Command R ')
       .replace('qwen2-math:', 'Qwen2 Math ')
       .replace('falcon3:', 'Falcon3 ')
       .replace('llama3.1:', 'Llama 3.1 ')
-      .replace('llama3.2:', 'Llama 3.2 ')
       .replace('mistral:', 'Mistral ')
       .replace('qwen2.5:', 'Qwen 2.5 ')
       .replace('phi3:', 'Phi3 ')
-      .replace('phi:', 'Phi-')
-      .replace('gemma2:', 'Gemma2 ')
       .replace(':35b', ' 35B')
-      .replace(':8b', ' 8B')
       .replace(':14b', ' 14B')
-      .replace(':9b', ' 9B')
-      .replace(':70b', ' 70B')
-      .replace(':7b', ' 7B')
-      .replace(':3b', ' 3B')
-      .replace(':2b', ' 2B')
-      .replace(':2.7b', ' 2.7B')
-      .replace(':1.1b', ' 1.1B');
+      .replace(':8b', ' 8B')
+      .replace(':7b', ' 7B');
     metaHtml += `<div class="message-meta"><span class="model-badge">🤖 ${modelDisplay}</span>`;
     if (meta.processingTime) {
       const seconds = (meta.processingTime / 1000).toFixed(1);
