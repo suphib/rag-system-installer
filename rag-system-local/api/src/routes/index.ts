@@ -87,16 +87,29 @@ router.post('/model', async (req, res) => {
 // Helper function to format model names for display
 function formatModelName(name: string): string {
   return name
+    .replace('tinyllama:', 'TinyLlama ')
+    .replace('command-r:', 'Command R ')
+    .replace('qwen2-math:', 'Qwen2 Math ')
+    .replace('falcon3:', 'Falcon3 ')
     .replace('llama3.1:', 'Llama 3.1 ')
     .replace('llama3.2:', 'Llama 3.2 ')
     .replace('llama3:', 'Llama 3 ')
     .replace('mistral:', 'Mistral ')
+    .replace('qwen2.5:', 'Qwen 2.5 ')
+    .replace('phi3:', 'Phi3 ')
+    .replace('phi:', 'Phi-')
+    .replace('gemma2:', 'Gemma2 ')
     .replace(':latest', '')
+    .replace(':35b', '35B')
     .replace(':8b', '8B')
-    .replace(':13b', '13B')
+    .replace(':14b', '14B')
+    .replace(':9b', '9B')
     .replace(':70b', '70B')
     .replace(':7b', '7B')
-    .replace(':3b', '3B');
+    .replace(':3b', '3B')
+    .replace(':2b', '2B')
+    .replace(':2.7b', '2.7B')
+    .replace(':1.1b', '1.1B');
 }
 
 // Upload and index documents (PDF, Excel, Word, PowerPoint)

@@ -1445,6 +1445,55 @@ footer {
     padding: 20px 24px;
 }
 
+/* Modal Tabs */
+.modal-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid var(--gray-200);
+    margin: -20px -24px 20px -24px;
+    padding: 0 24px;
+}
+
+.modal-tab {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    transition: all 0.2s;
+    position: relative;
+    bottom: -2px;
+}
+
+.modal-tab:hover {
+    color: var(--text-secondary);
+    background: var(--gray-50);
+}
+
+.modal-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.modal-tab-content {
+    display: none;
+}
+
+.modal-tab-content.active {
+    display: block;
+}
+
+.dark-mode .modal-tabs {
+    border-bottom-color: var(--gray-700);
+}
+
+.dark-mode .modal-tab:hover {
+    background: var(--gray-900);
+}
+
 .modal-message {
     font-size: 14px;
     line-height: 1.6;

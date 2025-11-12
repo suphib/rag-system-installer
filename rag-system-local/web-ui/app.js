@@ -131,8 +131,13 @@ function showConfirmModal(options) {
 // Model Management
 function getModelDescription(modelName) {
   const name = modelName.toLowerCase();
+  if (name.includes('tinyllama') || name.includes('tiny')) return 'winzig';
+  if (name.includes('qwen2-math')) return 'math spezialist';
+  if (name.includes('falcon3')) return 'math+code+science';
   if (name.includes('mistral')) return 'schnell';
-  if (name.includes('70b')) return 'sehr präzise';
+  if (name.includes('command-r')) return 'reasoning';
+  if (name.includes('qwen')) return 'top qualität';
+  if (name.includes('phi3') || name.includes('phi:14')) return 'bestes deutsch';
   if (name.includes('8b') && name.includes('3.1')) return 'balanced';
   if (name.includes('3b')) return 'ultraschnell';
   return 'standard';
@@ -235,55 +240,209 @@ function showModelInfo() {
 }
 
 function showAllModelsComparison() {
-  showConfirmModal({
-    title: 'Model-Vergleich & Empfehlungen',
-    icon: '📊',
-    message: 'Wählen Sie das passende Model für Ihre Anforderungen:',
-    details: `
-      <div style="overflow-x: auto; margin-top: 12px;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-          <thead>
-            <tr style="background: rgba(99, 102, 241, 0.1);">
-              <th style="padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1);">Model</th>
-              <th style="padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1);">Wann verwenden?</th>
-              <th style="padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1);">Performance</th>
-              <th style="padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1);">RAM</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="background: rgba(16, 185, 129, 0.05);">
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Llama 3.1 8B ⚡</strong></td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Standard-Analysen, schnelle Antworten</td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">20-30 tok/s</td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">8-12 GB</td>
-            </tr>
-            <tr style="background: rgba(168, 85, 247, 0.05);">
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Mistral 7B 🚀</strong></td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Schnell & effizient, gute Alternative zu Llama</td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">25-35 tok/s</td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">6-8 GB</td>
-            </tr>
-            <tr style="background: rgba(239, 68, 68, 0.05);">
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Llama 3.1 70B 🔥</strong></td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Wissenschaftliche Arbeiten, höchste Präzision</td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">3-5 tok/s</td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">40+ GB</td>
-            </tr>
-            <tr style="background: rgba(245, 158, 11, 0.05);">
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Llama 3.2 3B ⚡⚡</strong></td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Einfache Fragen, begrenzte Ressourcen</td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">40-50 tok/s</td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">4-6 GB</td>
-            </tr>
-          </tbody>
-        </table>
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+
+  overlay.innerHTML = `
+    <div class="modal" style="max-width: 900px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <div class="modal-icon info">📊</div>
+          <span>Model-Vergleich & Empfehlungen</span>
+        </div>
       </div>
-      <div style="margin-top: 12px; padding: 8px; background: rgba(99, 102, 241, 0.1); border-radius: 6px; font-size: 12px;">
-        <strong>💡 Tipp:</strong> Starten Sie mit <strong>Llama 3.1 8B</strong> oder <strong>Mistral 7B</strong> und wechseln Sie zu größeren Models nur wenn nötig.
+      <div class="modal-body">
+        <div class="modal-tabs">
+          <button class="modal-tab active" data-tab="models">📋 Model-Vergleich</button>
+          <button class="modal-tab" data-tab="setups">🎯 Setup-Empfehlungen</button>
+        </div>
+
+        <!-- Tab 1: Model Comparison -->
+        <div class="modal-tab-content active" id="tab-models">
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <thead>
+                <tr style="background: rgba(99, 102, 241, 0.1);">
+                  <th style="padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1);">Model</th>
+                  <th style="padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1);">Größe</th>
+                  <th style="padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1);">Wann verwenden?</th>
+                  <th style="padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1);">Performance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background: rgba(147, 51, 234, 0.05);">
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>TinyLlama 1.1B 🐭</strong></td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">637 MB</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Winzig aber brauchbar, Tests</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">60-80 tok/s</td>
+                </tr>
+                <tr style="background: rgba(245, 158, 11, 0.05);">
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Llama 3.2 3B ⚡⚡</strong></td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">2.0 GB</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Einfache Fragen, sehr schnell</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">40-50 tok/s</td>
+                </tr>
+                <tr style="background: rgba(168, 85, 247, 0.05);">
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Mistral 7B 🚀</strong></td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">4.4 GB</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Schnell & effizient, gute Alternative</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">25-35 tok/s</td>
+                </tr>
+                <tr style="background: rgba(34, 197, 94, 0.05);">
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Qwen2 Math 7B 🧮</strong></td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">4.4 GB</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Beste Math-Performance, spezialisiert</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">20-28 tok/s</td>
+                </tr>
+                <tr style="background: rgba(124, 58, 237, 0.05);">
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Falcon3 7B 🦅</strong></td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">4.6 GB</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Math + Code + Science</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">20-28 tok/s</td>
+                </tr>
+                <tr style="background: rgba(16, 185, 129, 0.05);">
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Llama 3.1 8B ⚡</strong></td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">4.9 GB</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Standard-Analysen, balanced</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">20-30 tok/s</td>
+                </tr>
+                <tr style="background: rgba(236, 72, 153, 0.05);">
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Phi3 14B 🇩🇪</strong></td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">7.9 GB</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Bestes Deutsch, Microsoft</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">12-18 tok/s</td>
+                </tr>
+                <tr style="background: rgba(99, 102, 241, 0.05);">
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Qwen2.5 14B ⭐</strong></td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">9.0 GB</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Beste Qualität für die Größe</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">10-15 tok/s</td>
+                </tr>
+                <tr style="background: rgba(249, 115, 22, 0.05);">
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Command R 35B 🧠</strong></td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">18 GB</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Cohere, komplexe Analysen & Reasoning</td>
+                  <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">8-12 tok/s</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 2: Setup Recommendations -->
+        <div class="modal-tab-content" id="tab-setups">
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+
+            <!-- Setup 1 -->
+            <div style="border: 2px solid #10b981; border-radius: 8px; padding: 16px; background: rgba(16, 185, 129, 0.05);">
+              <h3 style="margin: 0 0 12px 0; color: #10b981; display: flex; align-items: center; gap: 8px;">
+                🥇 Setup 1: Beste Balance (Empfohlen!)
+              </h3>
+              <div style="background: rgba(0,0,0,0.02); padding: 12px; border-radius: 6px; font-family: monospace; font-size: 12px; margin-bottom: 12px;">
+                <div>ollama pull mistral:7b</div>
+                <div>ollama pull qwen2.5:14b</div>
+                <div>ollama pull phi3:14b</div>
+              </div>
+              <div style="font-size: 13px; line-height: 1.6;">
+                <strong>Was bekommst du:</strong><br>
+                • Mistral 7B: Schnell & gut (4.1 GB) ⚡⚡⚡<br>
+                • Qwen2.5 14B: Beste Qualität (9 GB) ⭐⭐⭐⭐⭐<br>
+                • Phi3 14B: Bestes Deutsch (7.9 GB) 🇩🇪<br>
+                <br>
+                <strong>Total:</strong> ~21 GB + llama3.1:8b (bereits da)
+              </div>
+            </div>
+
+            <!-- Setup 2 -->
+            <div style="border: 2px solid #6366f1; border-radius: 8px; padding: 16px; background: rgba(99, 102, 241, 0.05);">
+              <h3 style="margin: 0 0 12px 0; color: #6366f1; display: flex; align-items: center; gap: 8px;">
+                🥈 Setup 2: Speed-Fokus
+              </h3>
+              <div style="background: rgba(0,0,0,0.02); padding: 12px; border-radius: 6px; font-family: monospace; font-size: 12px; margin-bottom: 12px;">
+                <div>ollama pull mistral:7b</div>
+                <div>ollama pull llama3.2:3b</div>
+                <div>ollama pull gemma2:9b</div>
+              </div>
+              <div style="font-size: 13px; line-height: 1.6;">
+                <strong>Was bekommst du:</strong><br>
+                • Mistral 7B: Sehr schnell (4.1 GB) ⚡⚡⚡<br>
+                • Llama 3.2 3B: Ultra schnell (2 GB) ⚡⚡⚡⚡<br>
+                • Gemma2 9B: Mittelweg (5.5 GB) ⚡⚡<br>
+                <br>
+                <strong>Total:</strong> ~11.6 GB
+              </div>
+            </div>
+
+            <!-- Setup 3 -->
+            <div style="border: 2px solid #f59e0b; border-radius: 8px; padding: 16px; background: rgba(245, 158, 11, 0.05);">
+              <h3 style="margin: 0 0 12px 0; color: #f59e0b; display: flex; align-items: center; gap: 8px;">
+                🥉 Setup 3: Minimalist (Platzsparend)
+              </h3>
+              <div style="background: rgba(0,0,0,0.02); padding: 12px; border-radius: 6px; font-family: monospace; font-size: 12px; margin-bottom: 12px;">
+                <div>ollama pull llama3.2:3b</div>
+                <div>ollama pull mistral:7b</div>
+              </div>
+              <div style="font-size: 13px; line-height: 1.6;">
+                <strong>Was bekommst du:</strong><br>
+                • Llama 3.2 3B: Ultra schnell (2 GB) ⚡⚡⚡⚡<br>
+                • Mistral 7B: Schnell & gut (4.1 GB) ⚡⚡⚡<br>
+                <br>
+                <strong>Total:</strong> ~6.1 GB - perfekt für Test-Systeme
+              </div>
+            </div>
+
+            <!-- Ollama Library Link -->
+            <div style="border: 2px solid #6366f1; border-radius: 8px; padding: 16px; background: rgba(99, 102, 241, 0.05); text-align: center;">
+              <div style="font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
+                <strong>🔍 Noch mehr Models entdecken?</strong><br>
+                Auf der <strong>Ollama Library</strong> findest du hunderte weitere Modelle für verschiedene Anwendungsfälle.
+              </div>
+              <a href="https://ollama.com/library" target="_blank" rel="noopener noreferrer"
+                 style="display: inline-block; padding: 10px 24px; background: #6366f1; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px; transition: all 0.2s;">
+                📚 Ollama Library öffnen →
+              </a>
+              <div style="font-size: 12px; color: #666; margin-top: 12px;">
+                Komplette Liste aller verfügbaren Models, mit Größen, Beschreibungen & Download-Befehlen
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
-    `,
-    confirmText: 'Verstanden',
-    cancelText: ''
+      <div class="modal-footer">
+        <button class="modal-button confirm" style="background: var(--primary);">Verstanden</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Tab switching
+  const tabs = overlay.querySelectorAll('.modal-tab');
+  const tabContents = overlay.querySelectorAll('.modal-tab-content');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.dataset.tab;
+
+      tabs.forEach(t => t.classList.remove('active'));
+      tabContents.forEach(tc => tc.classList.remove('active'));
+
+      tab.classList.add('active');
+      document.getElementById(`tab-${targetTab}`).classList.add('active');
+    });
+  });
+
+  // Close button
+  const confirmBtn = overlay.querySelector('.modal-button.confirm');
+  const close = () => {
+    overlay.classList.add('removing');
+    setTimeout(() => overlay.remove(), 200);
+  };
+
+  confirmBtn.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
   });
 }
 
@@ -494,7 +653,28 @@ function addMessage(content, role, meta = {}) {
 
   // Model badge for assistant messages
   if (role === 'assistant' && meta.model) {
-    const modelDisplay = meta.model.replace('llama3.1:', 'Llama 3.1 ').replace('llama3.2:', 'Llama 3.2 ').replace(':8b', ' 8B').replace(':13b', ' 13B').replace(':70b', ' 70B').replace(':3b', ' 3B');
+    const modelDisplay = meta.model
+      .replace('tinyllama:', 'TinyLlama ')
+      .replace('command-r:', 'Command R ')
+      .replace('qwen2-math:', 'Qwen2 Math ')
+      .replace('falcon3:', 'Falcon3 ')
+      .replace('llama3.1:', 'Llama 3.1 ')
+      .replace('llama3.2:', 'Llama 3.2 ')
+      .replace('mistral:', 'Mistral ')
+      .replace('qwen2.5:', 'Qwen 2.5 ')
+      .replace('phi3:', 'Phi3 ')
+      .replace('phi:', 'Phi-')
+      .replace('gemma2:', 'Gemma2 ')
+      .replace(':35b', ' 35B')
+      .replace(':8b', ' 8B')
+      .replace(':14b', ' 14B')
+      .replace(':9b', ' 9B')
+      .replace(':70b', ' 70B')
+      .replace(':7b', ' 7B')
+      .replace(':3b', ' 3B')
+      .replace(':2b', ' 2B')
+      .replace(':2.7b', ' 2.7B')
+      .replace(':1.1b', ' 1.1B');
     metaHtml += `<div class="message-meta"><span class="model-badge">🤖 ${modelDisplay}</span>`;
     if (meta.processingTime) {
       const seconds = (meta.processingTime / 1000).toFixed(1);
