@@ -756,7 +756,7 @@ function addStreamingMessage(content, role, meta = {}) {
 
   let metaHtml = '';
 
-  // Model badge for assistant messages
+  // Model badge for assistant messages with live timer
   if (role === 'assistant' && meta.model) {
     const modelDisplay = meta.model
       .replace('command-r:', 'Command R ')
@@ -771,7 +771,7 @@ function addStreamingMessage(content, role, meta = {}) {
       .replace(':8b', ' 8B')
       .replace(':7b', ' 7B');
     metaHtml += `<div class="message-meta"><span class="model-badge">🤖 ${modelDisplay}</span>`;
-    metaHtml += ` <span class="timer typing-indicator">⌛ Schreibt...</span>`;
+    metaHtml += ` <span class="timer typing-indicator">⏱️ <span class="live-timer">0.0</span>s</span>`;
     metaHtml += `</div>`;
   }
 
@@ -793,6 +793,18 @@ function addStreamingMessage(content, role, meta = {}) {
   `;
 
   chatContainer.appendChild(messageDiv);
+
+  // Start live timer
+  let seconds = 0;
+  const timerInterval = setInterval(() => {
+    seconds += 0.1;
+    const timerEl = messageDiv.querySelector('.live-timer');
+    if (timerEl) timerEl.textContent = seconds.toFixed(1);
+  }, 100);
+
+  messageDiv.dataset.timerInterval = timerInterval;
+  activeTimer = timerInterval;
+
   requestAnimationFrame(() => {
     messageDiv.style.opacity = '1';
     messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -821,11 +833,20 @@ function finalizeStreamingMessage(messageId, content, meta) {
     contentDiv.innerHTML = renderMarkdown(content);
   }
 
-  // Update processing time
+  // Stop the live timer
+  const timerInterval = messageDiv.dataset.timerInterval;
+  if (timerInterval) {
+    clearInterval(parseInt(timerInterval));
+    if (activeTimer === parseInt(timerInterval)) {
+      activeTimer = null;
+    }
+  }
+
+  // Update with final processing time
   const timerSpan = messageDiv.querySelector('.timer');
   if (timerSpan && meta.processingTime) {
     const seconds = (meta.processingTime / 1000).toFixed(1);
-    timerSpan.textContent = `⏱️ ${seconds}s`;
+    timerSpan.innerHTML = `⏱️ ${seconds}s`;
     timerSpan.classList.remove('typing-indicator');
   }
 }
