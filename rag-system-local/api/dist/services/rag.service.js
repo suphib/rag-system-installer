@@ -40,6 +40,14 @@ class RagService {
         }
         return indexed;
     }
+    // Get current model
+    getCurrentModel() {
+        return this.ollama.getModelName();
+    }
+    // Set model
+    setModel(modelName) {
+        this.ollama.setModelName(modelName);
+    }
     async chat(request) {
         const startTime = Date.now();
         const { question, maxResults = 5 } = request;
@@ -70,6 +78,7 @@ Antwort (auf Deutsch, präzise und basierend nur auf dem Kontext):`;
             answer,
             sources,
             processingTime,
+            model: this.ollama.getModelName(),
         };
     }
     chunkText(text, chunkSize = 1000) {

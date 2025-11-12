@@ -11,6 +11,15 @@ class OllamaService {
         this.modelName = modelName;
         this.embeddingModel = embeddingModel;
     }
+    // Get current model name
+    getModelName() {
+        return this.modelName;
+    }
+    // Set model name at runtime
+    setModelName(modelName) {
+        this.modelName = modelName;
+        console.log(`Model switched to: ${modelName}`);
+    }
     async generateEmbedding(text) {
         try {
             const response = await axios_1.default.post(`${this.baseUrl}/api/embeddings`, {

@@ -128,10 +128,193 @@ function showConfirmModal(options) {
   });
 }
 
+// Model Management
+async function loadCurrentModel() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/model`);
+    const data = await response.json();
+
+    if (response.ok && data.model) {
+      const modelSelect = document.getElementById('modelSelect');
+      if (modelSelect) {
+        modelSelect.value = data.model;
+      }
+      console.log(`Current model: ${data.model}`);
+    }
+  } catch (error) {
+    console.error('Failed to load current model:', error);
+  }
+}
+
+async function handleModelChange(event) {
+  const newModel = event.target.value;
+  const modelSelect = document.getElementById('modelSelect');
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/model`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: newModel })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      showToast(
+        'Model gewechselt',
+        `Aktives Model: ${newModel}`,
+        'success',
+        3000
+      );
+      console.log(`Switched to model: ${newModel}`);
+    } else {
+      showToast(
+        'Fehler beim Wechseln',
+        data.error || 'Model konnte nicht gewechselt werden',
+        'error'
+      );
+      // Revert selection on error
+      await loadCurrentModel();
+    }
+  } catch (error) {
+    showToast(
+      'Verbindungsfehler',
+      `Konnte Model nicht wechseln: ${error.message}`,
+      'error'
+    );
+    // Revert selection on error
+    await loadCurrentModel();
+  }
+}
+
+function showModelInfo() {
+  const modelInfo = {
+    'llama3.1:8b': {
+      name: 'Llama 3.1 8B',
+      icon: '⚡',
+      speed: 'Schnell',
+      quality: 'Gut',
+      ram: '8-12 GB',
+      description: 'Empfohlen für die meisten Anwendungen. Bietet eine ausgewogene Balance zwischen Geschwindigkeit und Qualität.',
+      useCase: 'Standard-Dokumentenanalyse, allgemeine Fragen, schnelle Antworten',
+      tokens: '~20-30 Tokens/Sek'
+    },
+    'llama3.1:13b': {
+      name: 'Llama 3.1 13B',
+      icon: '🎯',
+      speed: 'Mittel',
+      quality: 'Sehr gut',
+      ram: '16-20 GB',
+      description: 'Bessere Antwortqualität und tieferes Verständnis komplexer Dokumente. Langsamer aber präziser.',
+      useCase: 'Komplexe Analysen, technische Dokumente, detaillierte Zusammenfassungen',
+      tokens: '~10-15 Tokens/Sek'
+    },
+    'llama3.1:70b': {
+      name: 'Llama 3.1 70B',
+      icon: '🔥',
+      speed: 'Langsam',
+      quality: 'Exzellent',
+      ram: '40+ GB',
+      description: 'Premium-Model mit höchster Qualität. Beste Ergebnisse für anspruchsvolle Aufgaben. Benötigt viel RAM und ist deutlich langsamer.',
+      useCase: 'Kritische Analysen, wissenschaftliche Arbeiten, höchste Präzision',
+      tokens: '~3-5 Tokens/Sek'
+    },
+    'llama3.2:3b': {
+      name: 'Llama 3.2 3B',
+      icon: '⚡⚡',
+      speed: 'Sehr schnell',
+      quality: 'Grundlegend',
+      ram: '4-6 GB',
+      description: 'Ultra-schnelles Model für einfache Aufgaben. Ideal bei begrenzten Ressourcen oder wenn Geschwindigkeit wichtiger als Detailtiefe ist.',
+      useCase: 'Einfache Fragen, schnelle Suchen, Ressourcen-schonend',
+      tokens: '~40-50 Tokens/Sek'
+    }
+  };
+
+  const currentModel = document.getElementById('modelSelect').value;
+  const info = modelInfo[currentModel];
+
+  const confirmed = showConfirmModal({
+    title: `${info.icon} ${info.name}`,
+    icon: '📊',
+    message: info.description,
+    details: `
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+        <div><strong>⚡ Geschwindigkeit:</strong> ${info.speed}</div>
+        <div><strong>🎯 Qualität:</strong> ${info.quality}</div>
+        <div><strong>💾 RAM-Bedarf:</strong> ${info.ram}</div>
+        <div><strong>🚀 Performance:</strong> ${info.tokens}</div>
+      </div>
+      <div style="margin-top: 12px;"><strong>💡 Verwendung:</strong><br>${info.useCase}</div>
+    `,
+    confirmText: 'Verstanden',
+    cancelText: 'Andere Models anzeigen'
+  }).then(result => {
+    if (!result) {
+      // Show all models comparison
+      showAllModelsComparison();
+    }
+  });
+}
+
+function showAllModelsComparison() {
+  showConfirmModal({
+    title: 'Model-Vergleich & Empfehlungen',
+    icon: '📊',
+    message: 'Wählen Sie das passende Model für Ihre Anforderungen:',
+    details: `
+      <div style="overflow-x: auto; margin-top: 12px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <thead>
+            <tr style="background: rgba(99, 102, 241, 0.1);">
+              <th style="padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1);">Model</th>
+              <th style="padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1);">Wann verwenden?</th>
+              <th style="padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1);">Performance</th>
+              <th style="padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1);">RAM</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background: rgba(16, 185, 129, 0.05);">
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>3.1 8B ⚡</strong></td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Standard-Analysen, schnelle Antworten</td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">20-30 tok/s</td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">8-12 GB</td>
+            </tr>
+            <tr style="background: rgba(59, 130, 246, 0.05);">
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>3.1 13B 🎯</strong></td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Komplexe Dokumente, technische Texte</td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">10-15 tok/s</td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">16-20 GB</td>
+            </tr>
+            <tr style="background: rgba(239, 68, 68, 0.05);">
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>3.1 70B 🔥</strong></td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Wissenschaftliche Arbeiten, höchste Präzision</td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">3-5 tok/s</td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">40+ GB</td>
+            </tr>
+            <tr style="background: rgba(245, 158, 11, 0.05);">
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>3.2 3B ⚡⚡</strong></td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Einfache Fragen, begrenzte Ressourcen</td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">40-50 tok/s</td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">4-6 GB</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 12px; padding: 8px; background: rgba(99, 102, 241, 0.1); border-radius: 6px; font-size: 12px;">
+        <strong>💡 Tipp:</strong> Starten Sie mit <strong>3.1 8B</strong> und wechseln Sie zu größeren Models nur wenn nötig.
+      </div>
+    `,
+    confirmText: 'Verstanden',
+    cancelText: ''
+  });
+}
+
 // Initialize
 async function init() {
   setupEventListeners();
   loadDarkModePreference();
+  await loadCurrentModel();
   await loadStats();
   await loadDocuments();
   await checkHealth();
@@ -173,6 +356,20 @@ function setupEventListeners() {
   if (refreshStatsButton) refreshStatsButton.addEventListener('click', loadStats);
   if (darkModeToggle) darkModeToggle.addEventListener('click', toggleDarkMode);
   if (clearChatButton) clearChatButton.addEventListener('click', clearChat);
+
+  // Model selector
+  const modelSelect = document.getElementById('modelSelect');
+  if (modelSelect) modelSelect.addEventListener('change', handleModelChange);
+
+  // Model info button
+  const modelInfoBtn = document.getElementById('modelInfoBtn');
+  if (modelInfoBtn) {
+    modelInfoBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showModelInfo();
+    });
+  }
 }
 
 // Dark Mode
@@ -288,7 +485,8 @@ async function handleSendQuestion() {
       updateLastQueryTime();
       addMessage(data.answer, 'assistant', {
         sources: data.sources,
-        processingTime: data.processingTime
+        processingTime: data.processingTime,
+        model: data.model
       });
     } else {
       addMessage(`Fehler: ${data.error}`, 'assistant', { isError: true });
@@ -316,10 +514,21 @@ function addMessage(content, role, meta = {}) {
   messageDiv.style.opacity = '0';
 
   let metaHtml = '';
-  if (meta.processingTime) {
+
+  // Model badge for assistant messages
+  if (role === 'assistant' && meta.model) {
+    const modelDisplay = meta.model.replace('llama3.1:', 'Llama 3.1 ').replace('llama3.2:', 'Llama 3.2 ').replace(':8b', ' 8B').replace(':13b', ' 13B').replace(':70b', ' 70B').replace(':3b', ' 3B');
+    metaHtml += `<div class="message-meta"><span class="model-badge">🤖 ${modelDisplay}</span>`;
+    if (meta.processingTime) {
+      const seconds = (meta.processingTime / 1000).toFixed(1);
+      metaHtml += ` <span class="timer">⏱️ ${seconds}s</span>`;
+    }
+    metaHtml += `</div>`;
+  } else if (meta.processingTime) {
     const seconds = (meta.processingTime / 1000).toFixed(1);
     metaHtml += `<div class="message-meta"><span class="timer">⏱️ ${seconds}s</span></div>`;
   }
+
   if (meta.sources && meta.sources.length > 0) {
     const sourceList = meta.sources.map(s =>
       typeof s === 'string' ? `<span class="source-badge">📄 ${escapeHtml(s)}</span>` :

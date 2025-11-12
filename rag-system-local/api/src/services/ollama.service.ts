@@ -6,13 +6,24 @@ export class OllamaService {
   private embeddingModel: string;
 
   constructor(
-    baseUrl: string = 'http://localhost:11434', 
+    baseUrl: string = 'http://localhost:11434',
     modelName: string = 'llama3.1:8b',
     embeddingModel: string = 'nomic-embed-text'
   ) {
     this.baseUrl = baseUrl;
     this.modelName = modelName;
     this.embeddingModel = embeddingModel;
+  }
+
+  // Get current model name
+  getModelName(): string {
+    return this.modelName;
+  }
+
+  // Set model name at runtime
+  setModelName(modelName: string): void {
+    this.modelName = modelName;
+    console.log(`Model switched to: ${modelName}`);
   }
 
   async generateEmbedding(text: string): Promise<number[]> {

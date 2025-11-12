@@ -61,6 +61,16 @@ export class RagService {
     return indexed;
   }
 
+  // Get current model
+  getCurrentModel(): string {
+    return this.ollama.getModelName();
+  }
+
+  // Set model
+  setModel(modelName: string): void {
+    this.ollama.setModelName(modelName);
+  }
+
   async chat(request: ChatRequest): Promise<ChatResponse> {
     const startTime = Date.now();
     const { question, maxResults = 5 } = request;
@@ -99,6 +109,7 @@ Antwort (auf Deutsch, präzise und basierend nur auf dem Kontext):`;
       answer,
       sources,
       processingTime,
+      model: this.ollama.getModelName(),
     };
   }
 

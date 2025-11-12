@@ -23,6 +23,32 @@ const pptService = new powerpoint_service_1.PowerPointService();
 router.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+// Get current model
+router.get('/model', (req, res) => {
+    try {
+        const currentModel = ragService.getCurrentModel();
+        res.json({ model: currentModel });
+    }
+    catch (error) {
+        console.error('Get model error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+// Set model
+router.post('/model', (req, res) => {
+    try {
+        const { model } = req.body;
+        if (!model) {
+            return res.status(400).json({ error: 'Model name is required' });
+        }
+        ragService.setModel(model);
+        res.json({ success: true, model });
+    }
+    catch (error) {
+        console.error('Set model error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
 // Upload and index documents (PDF, Excel, Word, PowerPoint)
 router.post('/upload', upload.single('file'), async (req, res) => {
     const startTime = Date.now();

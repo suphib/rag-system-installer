@@ -15,6 +15,7 @@ export interface ChatResponse {
   answer: string;
   sources: string[];
   processingTime: number;
+  model: string;
 }
 
 export interface UploadResponse {
