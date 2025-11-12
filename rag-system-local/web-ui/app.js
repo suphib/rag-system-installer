@@ -236,25 +236,25 @@ function showAllModelsComparison() {
           </thead>
           <tbody>
             <tr style="background: rgba(16, 185, 129, 0.05);">
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>3.1 8B ⚡</strong></td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Llama 3.1 8B ⚡</strong></td>
               <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Standard-Analysen, schnelle Antworten</td>
               <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">20-30 tok/s</td>
               <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">8-12 GB</td>
             </tr>
-            <tr style="background: rgba(59, 130, 246, 0.05);">
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>3.1 13B 🎯</strong></td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Komplexe Dokumente, technische Texte</td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">10-15 tok/s</td>
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">16-20 GB</td>
+            <tr style="background: rgba(168, 85, 247, 0.05);">
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Mistral 7B 🚀</strong></td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Schnell & effizient, gute Alternative zu Llama</td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">25-35 tok/s</td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">6-8 GB</td>
             </tr>
             <tr style="background: rgba(239, 68, 68, 0.05);">
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>3.1 70B 🔥</strong></td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Llama 3.1 70B 🔥</strong></td>
               <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Wissenschaftliche Arbeiten, höchste Präzision</td>
               <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">3-5 tok/s</td>
               <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">40+ GB</td>
             </tr>
             <tr style="background: rgba(245, 158, 11, 0.05);">
-              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>3.2 3B ⚡⚡</strong></td>
+              <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);"><strong>Llama 3.2 3B ⚡⚡</strong></td>
               <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">Einfache Fragen, begrenzte Ressourcen</td>
               <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">40-50 tok/s</td>
               <td style="padding: 8px; border: 1px solid rgba(0,0,0,0.1);">4-6 GB</td>
@@ -263,7 +263,7 @@ function showAllModelsComparison() {
         </table>
       </div>
       <div style="margin-top: 12px; padding: 8px; background: rgba(99, 102, 241, 0.1); border-radius: 6px; font-size: 12px;">
-        <strong>💡 Tipp:</strong> Starten Sie mit <strong>3.1 8B</strong> und wechseln Sie zu größeren Models nur wenn nötig.
+        <strong>💡 Tipp:</strong> Starten Sie mit <strong>Llama 3.1 8B</strong> oder <strong>Mistral 7B</strong> und wechseln Sie zu größeren Models nur wenn nötig.
       </div>
     `,
     confirmText: 'Verstanden',
